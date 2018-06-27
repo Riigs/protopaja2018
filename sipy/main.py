@@ -1,5 +1,5 @@
 #importataan classes-filestä kaikki classit useemalla wild cardia
-from classes import *
+from lib.classes import *
 
 #funktioiden määrittely
 def openLoads(loads):

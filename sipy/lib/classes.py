@@ -1,4 +1,6 @@
 #luokka kuormille
+from lib.mittaus import adc_read
+
 class load:
     def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
         #kuorman nimi ja ID-numero
@@ -120,4 +122,3 @@ class maxHourDate:
 #päävaihe1 = mainPhase("Päävaihe 1",98765,3,36)
 #päävaihe1.addLoad(kuorma1)
 #päävaihe1.info()
-
