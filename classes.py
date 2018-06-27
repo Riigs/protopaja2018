@@ -1,6 +1,6 @@
 #luokka kuormille
 class load:
-    def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,priority):
+    def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
         #kuorman nimi ja ID-numero
         self.__name = name
         self.__ID = ID
@@ -17,6 +17,9 @@ class load:
         #muuttujat, jotka kertovat pitääkö releitä ohjata
         self.__autoCont = 0
         self.__manualCont = 0
+
+        #kertoo mihin vaiheeseen kuorma kuuluu
+        self.__phase = phase
 
         #kertoo mikä prioriteetti kuorman pudottamisella on (päättäkää suunta)
         self.__priority = priority
@@ -37,6 +40,7 @@ class load:
     def info(self):
         print("Name:",self.__name)
         print("ID:",self.__ID)
+        print("This load is part of the phase:",self.__phase)
         print("Pin of the sensor:",self.__sensorPin)
         print("Pin of the relay:",self.__relayPin)
         print("This hour's consumed energy:",self.__curHourEne)
@@ -105,7 +109,7 @@ class maxHourDate:
 
 
 #testausta
-#kuorma1 = load("Lattialämmitys",12345,1,2,10,0)
+#kuorma1 = load("Lattialämmitys",12345,1,2,10,1,0)
 #kuorma1.info()
 #kuorma1.changeRelayPin(5)
 #print("")
@@ -116,3 +120,4 @@ class maxHourDate:
 #päävaihe1 = mainPhase("Päävaihe 1",98765,3,36)
 #päävaihe1.addLoad(kuorma1)
 #päävaihe1.info()
+
