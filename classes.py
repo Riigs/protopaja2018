@@ -111,15 +111,15 @@ class maxHourDate:
 
 
 #testausta
-kuorma1 = load("Lattialämmitys",12345,1,2,10,0)
-kuorma1.info()
-kuorma1.changeRelayPin(5)
-print("")
-kuorma1.info()
+#kuorma1 = load("Lattialämmitys",12345,1,2,10,0)
+#kuorma1.info()
+#kuorma1.changeRelayPin(5)
+#print("")
+#kuorma1.info()
 
-print("")
+#print("")
 
-päävaihe1 = mainPhase("Päävaihe 1",98765,3,36,1600)
-päävaihe1.addLoad(kuorma1)
-päävaihe1.info()
+#päävaihe1 = mainPhase("Päävaihe 1",98765,3,36,1600)
+#päävaihe1.addLoad(kuorma1)
+#päävaihe1.info()
 
