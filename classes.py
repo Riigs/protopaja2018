@@ -51,7 +51,7 @@ class load:
 
 #luokka päävaiheille
 class mainPhase:
-    def __init__(self,name,ID,sensorPin,maximumCurrent,maxHour):
+    def __init__(self,name,ID,sensorPin,maximumCurrent):
         #päävaiheen nimi ja ID-numero
         self.__name = name
         self.__ID = ID
@@ -64,10 +64,6 @@ class mainPhase:
         self.__curHourEne = 0
         self.__maximumCurrent = maximumCurrent
         self.__threshold = 0.9
-
-        #tämän kuukauden suurin tehotunti ja milloin se oli ja maksimi tehotunti joka on sallittu
-        self.__curMonthMax = maxHourDate(maxHour,9,5,2018)
-        self.__maxHour = maxHour
 
     #lisää vaiheeseen kuorman
     def addLoad(self,load):
@@ -88,8 +84,6 @@ class mainPhase:
         print("Pin of the sensor:",self.__sensorPin)
         print("This hour's consumed energy:",self.__curHourEne)
         print("Maximum current of this load:",self.__maximumCurrent)
-        print("Maximum hourly consumption:",self.__maxHour)
-        self.__curMonthMax.info()
         print("Loads:")
         for load in self.__loads:
             print(load.getName())
@@ -119,7 +113,6 @@ class maxHourDate:
 
 #print("")
 
-#päävaihe1 = mainPhase("Päävaihe 1",98765,3,36,1600)
+#päävaihe1 = mainPhase("Päävaihe 1",98765,3,36)
 #päävaihe1.addLoad(kuorma1)
 #päävaihe1.info()
-
