@@ -18,26 +18,50 @@ loadMaxCur = 10
 maxHour = 2000
 monthMaxHour = maxHourDate(0,1,1,2000)
 
+#tiedostojen nimet
+loadFile = "loads.txt"
+phaseFile = "phases.txt"
+monthMaxFile = "monthMax.txt"
+
 #avataan eri kuormat tiedostosta
-#openLoads()
+loads = []
+openLoads(loads)
 
 #avataan tiedot eri vaiheista tiedostosta
-#openPhases()
+phases = []
+openPhases(phases)
 
 #avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
-#openMonthMax()
+monthMax = openMonthMax()
 
+
+
+def openLoads(loads):
+    return
+
+def openPhases(phases):
+    return
+
+def openMonthMax():
+    val = maxHourDate(1000,1,1,2000)
+    return val
 
 
 
 #päälooppi
-running = True
-while running:
-    #mittaus
-    #hetkellisen kulutuksen laskeminen
-    #tämän tunnin kulutuksen päivittäminen
-    #ohjauksen tarkistaminen pilvestä
-    #ohjauksen tarkistaminen automaattisesti
-    #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
+def main():
+    running = True
+    while running:
+        #mittaus
+        #hetkellisen kulutuksen laskeminen
+        #tämän tunnin kulutuksen päivittäminen
+        #ohjauksen tarkistaminen pilvestä
+        #ohjauksen tarkistaminen automaattisesti
+        #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
     
-    running = False
+        running = False
+
+#käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
+#importata toiseen tiedostoon
+if __name__ == '__main__':
+    main()
