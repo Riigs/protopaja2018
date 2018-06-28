@@ -1,5 +1,5 @@
 #luokka kuormille
-from lib.mittaus import adc_read
+from lib.mittaus import adc_read, adc_save
 
 class load:
     def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
@@ -27,30 +27,18 @@ class load:
         self.__priority = priority
 
     #vaihtaa pinniä, jossa rele on
-    def changeRelayPin(self,newPin):
+    def changeRelayPin(self):
         self.__relayPin = newPin
 
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     def resetHour(self):
         self.__curHourEne = 0
 
-<<<<<<< HEAD:sipy/lib/classes.py
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
     def getCons(self):
         cons = adc_read(self.__sensorPin)
         adc_save(cons, self.__ID)
         return cons
-=======
-    #Antaa tämänhetkisen kulutuksen ja tallentaa tiedostoon ID.txt. Luo tiedoston, jos sellaista ei vielä ole.
-    def getCons(self):
-        cons = adc_read(self.__sensorPin)
-        filename = str(self.__ID)+".txt"
-        print(filename)
-        f=open(filename, "a")
-        f.write(str(cons)+"\n")
-        f.close()
-        return (cons)
->>>>>>> 01395b8850a8f8af967c64e9b464425b0d55db76:classes.py
 
     #antaa infoa kuormasta
     def info(self):
@@ -66,8 +54,6 @@ class load:
     #antaa kuorman nimen
     def getName(self):
         return self.__name
-
-
 
 #luokka päävaiheille
 class mainPhase:
