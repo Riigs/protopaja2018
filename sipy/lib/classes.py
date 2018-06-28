@@ -34,9 +34,11 @@ class load:
     def resetHour(self):
         self.__curHourEne = 0
 
-    #antaa tämänhetkisen kulutuksen
+    #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
     def getCons(self):
-        print("tämä antaa tämänhetkisen kulutuksen vaiheessa")
+        cons = adc_read(self.__sensorPin)
+        adc_save(cons, self.__ID)
+        return cons
 
     #antaa infoa kuormasta
     def info(self):
@@ -81,7 +83,7 @@ class mainPhase:
 
     #antaa tämänhetkisen kulutuksen
     def getCons(self):
-        print("tämä antaa tämänhetkisen kulutuksen vaiheessa")
+        return adc_read(self.__sensorPin)
 
     #antaa infoa päävaiheesta
     def info(self):
