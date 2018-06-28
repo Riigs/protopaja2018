@@ -1,7 +1,12 @@
 #Poista kommentit pycom ja machine kun ajat sipyllä
-import pycom
-import machine
 import time
+
+try:
+    import pycom
+    import machine
+except ImportError:
+    print("Disconnected")
+    pass
 
 #Palauttaa jännitteen lukeman
 def adc_read(sensorPin):
@@ -10,7 +15,7 @@ def adc_read(sensorPin):
         apin = adc.channel(pin=sensorPin)
         return apin()
     except:
-        print("Ei lukemaa")
+        print("No reading from pin", sensorPin)
         return 0
 
 #Tallentaa lukeman kansioon ID
@@ -21,4 +26,4 @@ def adc_save(val, ID):
 def val_to_volt(val):
     max = 4095
     u = (val/max)*1.1
-    return u
+    return round(u,4)
