@@ -3,13 +3,20 @@ import pycom
 import machine
 import time
 
-#Palauttaa sensorin pinnin lukeman jännitteelle
+#Palauttaa jännitteen lukeman
 def adc_read(sensorPin):
-    adc = machine.ADC()
-    apin = adc.channel(pin=sensorPin)
-    val = apin()
-    time.sleep(2)
-    return val
+    try:
+        adc = machine.ADC()
+        apin = adc.channel(pin=sensorPin)
+        return apin()
+    except:
+        print("Ei lukemaa")
+        return 0
+
+#Tallentaa lukeman kansioon ID
+def adc_save(val, ID):
+    with open(str(ID)+".txt", "a") as f:
+        f.write(str(val)+"\n")
 
 def val_to_volt(val):
     max = 4095
