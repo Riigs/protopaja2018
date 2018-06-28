@@ -32,9 +32,15 @@ class load:
     def resetHour(self):
         self.__curHourEne = 0
 
-    #antaa tämänhetkisen kulutuksen
+    #Antaa tämänhetkisen kulutuksen ja tallentaa tiedostoon ID.txt. Luo tiedoston, jos sellaista ei vielä ole.
     def getCons(self):
-        print("tämä antaa tämänhetkisen kulutuksen vaiheessa")
+        cons = adc_read(self.__sensorPin)
+        filename = str(self.__ID)+".txt"
+        print(filename)
+        f=open(filename, "a")
+        f.write(str(cons)+"\n")
+        f.close()
+        return (cons)
 
     #antaa infoa kuormasta
     def info(self):
