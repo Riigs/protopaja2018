@@ -1,5 +1,5 @@
 #luokka kuormille
-from lib.mittaus import adc_read, adc_save
+from lib.mittaus import adc_read, adc_save, rm
 
 class load:
     def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
@@ -31,8 +31,16 @@ class load:
         self.__relayPin = newPin
 
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
+    #Lisäksi poistaa kuluneen tunnin tiedot
     def resetHour(self):
         self.__curHourEne = 0
+        filename = str(self.__ID)+".txt"
+        try:
+            rm(filename)
+            return 1
+        except:
+            pass
+
 
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
     def getCons(self):

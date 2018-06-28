@@ -1,11 +1,11 @@
-#Poista kommentit pycom ja machine kun ajat sipyllä
 import time
+import os
 
 try:
     import pycom
     import machine
 except ImportError:
-    print("Disconnected")
+    print("Sipy disconnected")
     pass
 
 #Palauttaa jännitteen lukeman
@@ -22,6 +22,9 @@ def adc_read(sensorPin):
 def adc_save(val, ID):
     with open(str(ID)+".txt", "a") as f:
         f.write(str(val)+"\n")
+
+def rm(filename):
+    os.remove(filename)
 
 def val_to_volt(val):
     max = 4095
