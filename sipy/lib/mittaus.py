@@ -18,9 +18,11 @@ def adc_read(sensorPin):
         print("No reading from pin", sensorPin)
         return 0
 
-#Tallentaa lukeman kansioon ID
+#Tallentaa lukeman kansioon temp/ID.txt
 def adc_save(val, ID):
-    with open(str(ID)+".txt", "a") as f:
+    filename = str(ID)+".txt"
+    path = os.path.join("temp", filename)
+    with open(path, "a") as f:
         f.write(str(val)+"\n")
 
 def rm(filename):

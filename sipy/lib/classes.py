@@ -1,5 +1,6 @@
 #luokka kuormille
 from lib.mittaus import adc_read, adc_save, rm
+import os
 
 class load:
     def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
@@ -35,8 +36,9 @@ class load:
     def resetHour(self):
         self.__curHourEne = 0
         filename = str(self.__ID)+".txt"
+        path = os.path.join("temp", filename)
         try:
-            rm(filename)
+            rm(path)
             return 1
         except:
             pass
