@@ -3,7 +3,7 @@ from lib.classes import *
 
 #funktioiden määrittely
 def openLoads(loads,loadFile):
-    loadData = open(loadFile,'r')
+    loadData = open("files/"+loadFile,'r')
     for line in loadData:
         data = line.split(',')
         if len(data) == 7:
@@ -26,7 +26,7 @@ def sortLoads(loads,phases):
     
 
 def openPhases(phases,phasesFile):
-    phasesData = open(phasesFile,'r')
+    phasesData = open("files/"+phasesFile,'r')
     for line in phasesData:
         data = line.split(',')
         if len(data) == 4:
@@ -36,7 +36,7 @@ def openPhases(phases,phasesFile):
     return
 
 def openMonthMax(maxFile):
-    maxData = open(maxFile,'r')
+    maxData = open("files/"+maxFile,'r')
     line = maxData.readline()
     data = line.split(',')
     val = maxHourDate(0,0,0,0)
