@@ -26,10 +26,6 @@ class load:
         #kertoo mikä prioriteetti kuorman pudottamisella on (päättäkää suunta)
         self.__priority = priority
 
-    #vaihtaa pinniä, jossa rele on
-    def changeRelayPin(self):
-        self.__relayPin = newPin
-
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     #Lisäksi poistaa kuluneen tunnin tiedot
     def resetHour(self):
