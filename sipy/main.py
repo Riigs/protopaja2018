@@ -22,8 +22,14 @@ def openPhases(phases,phasesFile):
     phasesData.close()
     return
 
-def openMonthMax():
-    val = maxHourDate(1000,1,1,2000)
+def openMonthMax(maxFile):
+    maxData = open(maxFile,'r')
+    line = maxData.readline()
+    data = line.split(',')
+    val = maxHourDate(0,0,0,0)
+    if len(data) == 4:
+        val = maxHourDate(data[0],data[1],data[2],data[3])
+    maxData.close()
     return val
 
 #päälooppi
@@ -38,6 +44,7 @@ def main():
         #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
         loads[0].info()
         phases[0].info()
+        monthMax.info()
         running = False
 
 #muuttujien asettaminen ja tietojen lataaminen tiedostosta, ja hard
@@ -47,9 +54,8 @@ def main():
 phaseMaxCur = 36
 loadMaxCur = 10
 
-#maksimi tuntiteho ja suurimman tuntitehon päivä
+#maksimi tuntiteho
 maxHour = 2000
-monthMaxHour = maxHourDate(0,1,1,2000)
 
 #tiedostojen nimet
 loadFile = "loads.txt"
@@ -65,7 +71,7 @@ phases = []
 openPhases(phases,phaseFile)
 
 #avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
-monthMax = openMonthMax()
+monthMax = openMonthMax(monthMaxFile)
 
 #käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
 #importata toiseen tiedostoon
