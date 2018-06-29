@@ -51,10 +51,15 @@ def getConsAll():
     for load in loads:
         v=load.getCons()
         print(load.getName(), v)
+        time.sleep(0.5)
 
 def resetHourAll():
     for load in loads:
         load.resetHour()
+
+def getHourEneAll():
+    for load in loads:
+        load.getCurHourEne()
 
 def printInfo(data):
     try:
@@ -62,6 +67,8 @@ def printInfo(data):
             piece.info()
     except:
         data.info()
+
+
 
 #päälooppi
 def main():
@@ -72,11 +79,17 @@ def main():
     running = True
     while running:
         #mittaus
-        getConsAll()
+        for i in range(4):
+            getConsAll()
         #hetkellisen kulutuksen laskeminen
+
         #tämän tunnin kulutuksen päivittäminen
-        time.sleep(5)
+        print("............\n")
+        getHourEneAll()
         resetHourAll()
+
+        printInfo(loads)
+
         #ohjauksen tarkistaminen pilvestä
         #ohjauksen tarkistaminen automaattisesti
         #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
