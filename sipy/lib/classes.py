@@ -1,7 +1,7 @@
-#luokka kuormille
 from lib.mittaus import adc_read, adc_save, rm
 import os
 
+#luokka kuormille
 class load:
     def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
         #kuorman nimi ja ID-numero
@@ -26,10 +26,6 @@ class load:
 
         #kertoo mikä prioriteetti kuorman pudottamisella on (päättäkää suunta)
         self.__priority = priority
-
-    #vaihtaa pinniä, jossa rele on
-    def changeRelayPin(self):
-        self.__relayPin = newPin
 
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     #Lisäksi poistaa kuluneen tunnin tiedot
@@ -101,8 +97,11 @@ class mainPhase:
         print("This hour's consumed energy:",self.__curHourEne)
         print("Maximum current of this load:",self.__maximumCurrent)
         print("Loads:")
+        if len(self.__loads) == 0:
+            print("None")
         for load in self.__loads:
             print(load.getName())
+        print("")
 
 
 

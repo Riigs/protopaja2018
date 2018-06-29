@@ -8,23 +8,42 @@ def openLoads(loads,loadFile):
     for line in loadData:
         data = line.split(',')
         if len(data) == 7:
-            newLoad = load(data[0],data[1],data[2],data[3],data[4],data[5],data[6])
+            newLoad = load(data[0],int(data[1]),data[2],data[3],int(data[4]),int(data[5]),int(data[6]))
             loads.append(newLoad)
     loadData.close()
     return
+
+def sortLoads(loads,phases):
+    for load in loads:
+        phase = load.getPhase()
+        if phase==1:
+            phases[0].addLoad(load)
+        elif phase==2:
+            phases[1].addLoad(load)
+        elif phase==3:
+            phases[2].addLoad(load)
+        else:
+            print("Kuorma", load.getName() ,"ei kuulu mihinkään vaiheeseen.")
+
 
 def openPhases(phases,phasesFile):
     phasesData = open(phasesFile,'r')
     for line in phasesData:
         data = line.split(',')
         if len(data) == 4:
-            newPhase = mainPhase(data[0],data[1],data[2],data[3])
+            newPhase = mainPhase(data[0],int(data[1]),data[2],int(data[3]))
             phases.append(newPhase)
     phasesData.close()
     return
 
-def openMonthMax():
-    val = maxHourDate(1000,1,1,2000)
+def openMonthMax(maxFile):
+    maxData = open(maxFile,'r')
+    line = maxData.readline()
+    data = line.split(',')
+    val = maxHourDate(0,0,0,0)
+    if len(data) == 4:
+        val = maxHourDate(int(data[0]),int(data[1]),int(data[2]),int(data[3]))
+    maxData.close()
     return val
 
 #Mittaa ja tulostaa jokaisen kuorman hetkellisen kulutuksen
@@ -37,13 +56,18 @@ def resetHourAll():
     for load in loads:
         load.resetHour()
 
-def infoAll():
-    for load in loads:
-        load.info()
+def printInfo(data):
+    try:
+        for piece in data:
+            piece.info()
+    except:
+        data.info()
 
 #päälooppi
 def main():
-    infoAll()
+    printInfo(loads)
+    printInfo(phases)
+    printInfo(monthMax)
     print("............\n")
     running = True
     while running:
@@ -56,8 +80,6 @@ def main():
         #ohjauksen tarkistaminen pilvestä
         #ohjauksen tarkistaminen automaattisesti
         #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
-
-
         running = False
 
 #muuttujien asettaminen ja tietojen lataaminen tiedostosta, ja hard
@@ -67,9 +89,8 @@ def main():
 phaseMaxCur = 36
 loadMaxCur = 10
 
-#maksimi tuntiteho ja suurimman tuntitehon päivä
+#maksimi tuntiteho
 maxHour = 2000
-monthMaxHour = maxHourDate(0,1,1,2000)
 
 #tiedostojen nimet
 loadFile = "loads.txt"
@@ -83,9 +104,10 @@ openLoads(loads,loadFile)
 #avataan tiedot eri vaiheista tiedostosta
 phases = []
 openPhases(phases,phaseFile)
+sortLoads(loads,phases)
 
 #avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
-monthMax = openMonthMax()
+monthMax = openMonthMax(monthMaxFile)
 
 #käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
 #importata toiseen tiedostoon
