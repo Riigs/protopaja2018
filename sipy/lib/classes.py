@@ -1,6 +1,6 @@
-#luokka kuormille
 from lib.mittaus import adc_read, adc_save, rm
 
+#luokka kuormille
 class load:
     def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
         #kuorman nimi ja ID-numero
@@ -99,8 +99,11 @@ class mainPhase:
         print("This hour's consumed energy:",self.__curHourEne)
         print("Maximum current of this load:",self.__maximumCurrent)
         print("Loads:")
+        if len(self.__loads) == 0:
+            print("None")
         for load in self.__loads:
             print(load.getName())
+        print("")
 
 
 
