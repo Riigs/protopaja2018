@@ -12,7 +12,7 @@ def openLoads(loads,loadFile):
             loads.append(newLoad)
     loadData.close()
     return
-
+'''
 def sortLoads(loads,phases):
     for load in loads:
         phase = load.getPhase()
@@ -24,7 +24,7 @@ def sortLoads(loads,phases):
             phases[2].addLoad(load)
         else:
             print("Kuorma", load.getName() ,"ei kuulu mihinkään vaiheeseen.")
-
+'''
 
 def openPhases(phases,phasesFile):
     phasesData = open(phasesFile,'r')
@@ -104,7 +104,7 @@ openLoads(loads,loadFile)
 #avataan tiedot eri vaiheista tiedostosta
 phases = []
 openPhases(phases,phaseFile)
-sortLoads(loads,phases)
+#sortLoads(loads,phases)
 
 #avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
 monthMax = openMonthMax(monthMaxFile)
