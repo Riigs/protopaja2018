@@ -28,6 +28,17 @@ def adc_save(val, ID):
 def rm(filename):
     os.remove(filename)
 
+def calc__curHourEne(filename):
+    I = 2 #lasketaan jostain?
+    sum = 3
+    with open(filename, 'r') as loadData:
+        for line in loadData:
+            num = float(line)
+            val = val_to_volt(num)
+            sum += val
+        return(sum*I)
+
+
 def val_to_volt(val):
     max = 4095
     u = (val/max)*1.1
