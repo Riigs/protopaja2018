@@ -1,2 +1,2 @@
-Lattialämmitys,12345,1,P14,10,1,0
-Kiuas,12346,1,P13,10,1,0
+Lattialämmitys,12345,P1,P14,10,1,0
+Kiuas,12346,P2,P13,10,1,0
