@@ -37,12 +37,18 @@ class load:
         except:
             pass
 
-
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
     def getCons(self):
         cons = adc_read(self.__sensorPin)
         adc_save(cons, self.__ID)
         return cons
+
+    #antaa kuorman nimen
+    def getName(self):
+        return self.__name
+
+    def getPhase(self):
+        return self.__phase
 
     #antaa infoa kuormasta
     def info(self):
@@ -54,10 +60,9 @@ class load:
         print("This hour's consumed energy:",self.__curHourEne)
         print("Maximum current of this load:",self.__maximumCurrent)
         print("Load's dropping priority:",self.__priority)
+        print("")
 
-    #antaa kuorman nimen
-    def getName(self):
-        return self.__name
+
 
 #luokka päävaiheille
 class mainPhase:
@@ -120,7 +125,6 @@ class maxHourDate:
 #testausta
 #kuorma1 = load("Lattialämmitys",12345,1,2,10,1,0)
 #kuorma1.info()
-#kuorma1.changeRelayPin(5)
 #print("")
 #kuorma1.info()
 
