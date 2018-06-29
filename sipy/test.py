@@ -16,9 +16,8 @@ class TestMain(unittest.TestCase):
         pass
 
     def test_openMonthMax(self):
-        result=openMonthMax()
-        val = isinstance(result, object)
-        self.assertTrue(val)
+        #Testi tähän
+        pass
 
 #Testaa palauttaako getConsAll() objektin
     def test_getConsAll(self):
