@@ -32,6 +32,13 @@ def openMonthMax(maxFile):
     maxData.close()
     return val
 
+def printInfo(data):
+    try:
+        for piece in data:
+            piece.info()
+    except:
+        data.info()
+
 #päälooppi
 def main():
     running = True
@@ -42,9 +49,9 @@ def main():
         #ohjauksen tarkistaminen pilvestä
         #ohjauksen tarkistaminen automaattisesti
         #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
-        loads[0].info()
-        phases[0].info()
-        monthMax.info()
+        printInfo(loads)
+        printInfo(phases)
+        printInfo(monthMax)
         running = False
 
 #muuttujien asettaminen ja tietojen lataaminen tiedostosta, ja hard
