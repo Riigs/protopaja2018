@@ -1,4 +1,4 @@
-from lib.mittaus import adc_read, adc_save, rm
+from lib.mittaus import adc_read, adc_save, rm, calc__curHourEne
 import os
 
 #luokka kuormille
@@ -30,14 +30,19 @@ class load:
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     #Lisäksi poistaa kuluneen tunnin tiedot
     def resetHour(self):
-        self.__curHourEne = 0
         filename = str(self.__ID)+".txt"
         path = os.path.join("temp", filename)
         try:
             rm(path)
             return 1
         except:
-            pass
+            return 0
+
+    def getCurHourEne(self):
+        filename = str(self.__ID)+".txt"
+        path = os.path.join("temp", filename)
+        self.__curHourEne = calc__curHourEne(path)
+
 
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
     def getCons(self):
