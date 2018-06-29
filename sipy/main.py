@@ -1,5 +1,6 @@
 #importataan classes-filestä kaikki classit useemalla wild cardia
 from lib.classes import *
+import time
 
 #funktioiden määrittely
 def openLoads(loads,loadFile):
@@ -26,18 +27,37 @@ def openMonthMax():
     val = maxHourDate(1000,1,1,2000)
     return val
 
+#Mittaa ja tulostaa jokaisen kuorman hetkellisen kulutuksen
+def getConsAll():
+    for load in loads:
+        v=load.getCons()
+        print(load.getName(), v)
+
+def resetHourAll():
+    for load in loads:
+        load.resetHour()
+
+def infoAll():
+    for load in loads:
+        load.info()
+
 #päälooppi
 def main():
+    infoAll()
+    print("............\n")
     running = True
     while running:
         #mittaus
+        getConsAll()
         #hetkellisen kulutuksen laskeminen
         #tämän tunnin kulutuksen päivittäminen
+        time.sleep(5)
+        resetHourAll()
         #ohjauksen tarkistaminen pilvestä
         #ohjauksen tarkistaminen automaattisesti
         #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
-        loads[0].info()
-        phases[0].info()
+
+
         running = False
 
 #muuttujien asettaminen ja tietojen lataaminen tiedostosta, ja hard

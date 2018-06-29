@@ -22,6 +22,10 @@ class TestMain(unittest.TestCase):
         self.assertEqual(val, 1000)
         self.assertEqual(date, "1.1.2000")
 
+    def test_getConsAll(self):
+        #Testi tähän
+        pass
+
 #Testaa paketin "mittaus" funktiot
 class TestMittaus(unittest.TestCase):
 
