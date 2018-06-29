@@ -1,9 +1,11 @@
 #importataan classes-filestä kaikki classit useemalla wild cardia
 from lib.classes import *
+import os
 
 #funktioiden määrittely
 def openLoads(loads,loadFile):
-    loadData = open("files/"+loadFile,'r')
+    path = os.path.join("files", loadfile)
+    loadData = open(path,'r')
     for line in loadData:
         data = line.split(',')
         if len(data) == 7:
@@ -26,7 +28,8 @@ def sortLoads(loads,phases):
     
 
 def openPhases(phases,phasesFile):
-    phasesData = open("files/"+phasesFile,'r')
+    path = os.path.join("files", phasesFile)
+    phasesData = open(path,'r')
     for line in phasesData:
         data = line.split(',')
         if len(data) == 4:
@@ -36,7 +39,8 @@ def openPhases(phases,phasesFile):
     return
 
 def openMonthMax(maxFile):
-    maxData = open("files/"+maxFile,'r')
+    path = os.path.join("files", maxFile)
+    maxData = open(path,'r')  
     line = maxData.readline()
     data = line.split(',')
     val = maxHourDate(0,0,0,0)
