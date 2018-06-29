@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 Lattialämmitys,12345,P14,1,10,1,0
 Kiuas,22346,P13,2,10,1,0
+=======
+Lattialämmitys,12345,P1,P14,10,1,0
+Kiuas,12346,P2,P13,10,1,0
+>>>>>>> Main-ohjelman-pohja
