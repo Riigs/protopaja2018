@@ -5,7 +5,7 @@ import os
 
 #funktioiden määrittely
 def openLoads(loads,loadFile):
-    path = os.path.join("files", loadfile)
+    path = os.path.join("files", loadFile)
     loadData = open(path,'r')
     for line in loadData:
         data = line.split(',')
