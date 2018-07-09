@@ -1,4 +1,4 @@
-from lib.mittaus import adc_read, adc_save, rm, calc__curHourEne
+from lib.mittaus import *
 import os
 
 #luokka kuormille
@@ -43,7 +43,7 @@ class load:
         filename = str(self.__ID)+".txt"
         path = "temp/" + filename
         #path = os.path.join("temp", filename)
-        self.__curHourEne = calc__curHourEne(path)
+        self.__curHourEne = 0
 
 
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
