@@ -5,7 +5,8 @@ import os
 
 #funktioiden määrittely
 def openLoads(loads,loadFile):
-    path = os.path.join("files", loadFile)
+    #path = os.path.join("files", loadFile)
+    path = "files/" + loadFile
     loadData = open(path,'r')
     for line in loadData:
         data = line.split(',')
@@ -29,7 +30,8 @@ def sortLoads(loads,phases):
 
 
 def openPhases(phases,phasesFile):
-    path = os.path.join("files", phasesFile)
+    #path = os.path.join("files", phasesFile)
+    path = "files/" + phasesFile
     phasesData = open(path,'r')
     for line in phasesData:
         data = line.split(',')
@@ -40,7 +42,8 @@ def openPhases(phases,phasesFile):
     return
 
 def openMonthMax(maxFile):
-    path = os.path.join("files", maxFile)
+    #path = os.path.join("files", maxFile)
+    path = "files/" + maxFile
     maxData = open(path,'r')
     line = maxData.readline()
     data = line.split(',')
