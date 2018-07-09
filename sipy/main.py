@@ -93,7 +93,7 @@ def main():
         #tämän tunnin kulutuksen päivittäminen
         print("............\n")
         getHourEneAll()
-        resetHourAll()
+        #resetHourAll()
 
         printInfo(loads)
 
@@ -133,3 +133,4 @@ monthMax = openMonthMax(monthMaxFile)
 #importata toiseen tiedostoon
 if __name__ == '__main__':
     main()
+    adcFileRead()
