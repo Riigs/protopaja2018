@@ -31,7 +31,8 @@ class load:
     #Lisäksi poistaa kuluneen tunnin tiedot
     def resetHour(self):
         filename = str(self.__ID)+".txt"
-        path = os.path.join("temp", filename)
+        path = "temp/" + filename
+        #path = os.path.join("temp", filename)
         try:
             rm(path)
             return 1
@@ -40,7 +41,8 @@ class load:
 
     def getCurHourEne(self):
         filename = str(self.__ID)+".txt"
-        path = os.path.join("temp", filename)
+        path = "temp/" + filename
+        #path = os.path.join("temp", filename)
         self.__curHourEne = calc__curHourEne(path)
 
 
@@ -82,7 +84,7 @@ class mainPhase:
         self.__sensorPin = sensorPin
         self.__loads = []
 
-        #tämän tunnin kulutus, maksimi hetkellinen virta ja raja-arvo
+        #tämän tunnin kulutus, maksimi hetkellinen virta ja raja-arvjoino
         self.__curHourEne = 0
         self.__maximumCurrent = maximumCurrent
         self.__threshold = 0.9
