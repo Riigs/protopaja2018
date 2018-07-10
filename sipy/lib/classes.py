@@ -46,6 +46,12 @@ class load:
         self.__curHourEne = 0
 
 
+    #antaa tämänhetkisen virran
+    def getCurrent(self):
+        current = adc_read(self.__sensorPin)
+        #adc_save(current, self.__ID)
+        return current
+
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
     def getCons(self):
         cons = adc_read(self.__sensorPin)
