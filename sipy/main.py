@@ -53,6 +53,13 @@ def openMonthMax(maxFile):
     maxData.close()
     return val
 
+#Mittaa ja tulostaa jokaisen kuorman virran
+def getCurrentAll():
+    for load in loads:
+        v=load.getCurrent()
+        print(load.getName(), v, "A")
+        time.sleep(0.5)
+
 #Mittaa ja tulostaa jokaisen kuorman hetkellisen kulutuksen
 def getConsAll():
     for load in loads:
@@ -86,8 +93,8 @@ def main():
     running = True
     while running:
         #mittaus
-        for i in range(4):
-            getConsAll()
+        for i in range(10):
+            getCurrentAll()
         #hetkellisen kulutuksen laskeminen
 
         #tämän tunnin kulutuksen päivittäminen
@@ -133,4 +140,3 @@ monthMax = openMonthMax(monthMaxFile)
 #importata toiseen tiedostoon
 if __name__ == '__main__':
     main()
-    adcFileRead()
