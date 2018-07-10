@@ -4,6 +4,9 @@ import os
 try:
     import pycom
     import machine
+    #input voltagen laittaminen p22 pinniin
+    #dac = machine.DAC('P22')        # create a DAC object
+    #dac.write(0.2)
 except ImportError:
     print("Sipy disconnected")
     pass
@@ -13,10 +16,18 @@ def adc_read(sensorPin):
     try:
         adc = machine.ADC()
         apin = adc.channel(pin=sensorPin)
-        return apin()
+        current = valToCurrent(apin())
+        return current
     except:
         print("No reading from pin", sensorPin)
         return 0
+
+def valToCurrent(val):
+    #oletusarvona 12-bittinen mittaus
+    bits = 12
+    #virran, jännitteiden ja saadun arvon välisistä suhteista johdettu kaava
+    current = 50.0*val/(pow(2,bits))
+    return round(current,4)
 
 #Tallentaa lukeman kansioon temp/ID.txt
 def adc_save(val, ID):
