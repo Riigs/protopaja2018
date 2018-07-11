@@ -6,7 +6,7 @@ try:
     import machine
 
     adc = machine.ADC()
-    adc.vref(78)
+    #adc.vref(1166)
 
     #input voltagen laittaminen p22 pinniin
     #dac = machine.DAC('P21')        # create a DAC object
@@ -27,11 +27,12 @@ def adc_read(sensorPin):
         i = 0
         val = 0
         apin = adc.channel(pin=sensorPin)
-        for i in range(1000):
-            val += apin()
-        val = val/1000
-        print("Voltage:",val_to_volt(val))
+        for i in range(2000):
+            val += apin.voltage()
+        val = val/2000/1000
+        val = round(val,4)
         print("Value:",val)
+        print("Voltage:",val)
         current = valToCurrent(val)
         return current
     except:
@@ -42,7 +43,7 @@ def valToCurrent(val):
     #oletusarvona 12-bittinen mittaus
     bits = 12
     #virran, jännitteiden ja saadun arvon välisistä suhteista johdettu kaava
-    current = 50.0*val/(pow(2,bits)-1)
+    current = 50.0*val/(1.1)
     return round(current,4)
 
 #Tallentaa lukeman kansioon temp/ID.txt
