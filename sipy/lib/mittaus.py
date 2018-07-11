@@ -21,11 +21,12 @@ except ImportError:
 #Palauttaa jännitteen lukeman
 def adc_read(sensorPin):
     try:
-        adc = machine.ADC()
-        #print(adc.vref())
-        adc.vref(33)
+        i = 0
+        val = 0
         apin = adc.channel(pin=sensorPin)
-        val = apin()
+        for i in range 10:
+            val += apin())
+        val = val/10
         print("Voltage:",val_to_volt(val))
         print("Value:",val)
         current = valToCurrent(val)
