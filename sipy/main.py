@@ -90,6 +90,11 @@ def main():
     printInfo(phases)
     printInfo(monthMax)
     print("............\n")
+    
+    adc = machine.ADC()
+    #print(adc.vref())
+    adc.vref(35)
+    
     running = True
     while running:
         #mittaus
