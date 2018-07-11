@@ -5,6 +5,9 @@ try:
     import pycom
     import machine
 
+    adc = machine.ADC()
+    adc.vref(78)
+
     #input voltagen laittaminen p22 pinniin
     #dac = machine.DAC('P21')        # create a DAC object
     #dac.write(0.1)
@@ -24,9 +27,9 @@ def adc_read(sensorPin):
         i = 0
         val = 0
         apin = adc.channel(pin=sensorPin)
-        for i in range 10:
-            val += apin())
-        val = val/10
+        for i in range(1000):
+            val += apin()
+        val = val/1000
         print("Voltage:",val_to_volt(val))
         print("Value:",val)
         current = valToCurrent(val)
