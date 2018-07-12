@@ -2,6 +2,7 @@
 from lib.classes import *
 import time
 import os
+from machine import Timer
 
 #funktioiden määrittely
 def openLoads(loads,loadFile):
@@ -92,33 +93,76 @@ def main():
     print("............\n")
 
     running = True
+    chrono.start()
+    tiimari.start()
     while running:
         #mittaus
-        for i in range(10):
-            getCurrentAll()
+        #getCurrentAll()
+        #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
+        if chrono.read() - latestTime >= 0.5:
+            for load in loads:
+                #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
+                current = load.getCurrent()
+                print("Kuorman " + load.getName() + " virta: "+str(current)+"A")
+                #verrataan virtaa raja-arvoon ja avataan piiri jos virta ylittää rajan
+                if current >= load.getMaxCur():
+                    load.relayDisconn()
+
+                power = current * voltage
+                newTime = chrono.read()
+                energy = power * (newTime - load.getLastTime())
+                load.updateLastTime(newTime)
+                load.addCurHourEne(energy)
+                print("")
+
+            totalEne = 0
+            for phase in phases:
+                current = phase.getCurrent()
+                print("Vaiheen " + phase.getName() + " virta: "+str(current)+"A")
+                if current >= phase.getMaxCur():
+                    phase.relayDisconn()
+                #päivitetään nykyisen tunnin kulutus
+                phase.updateCurHourEne()
+                totalEne += phase.getCurHourEne()
+                print("")
+
+            print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
+            print("")
+
         #hetkellisen kulutuksen laskeminen
 
         #tämän tunnin kulutuksen päivittäminen
-        print("............\n")
-        getHourEneAll()
+        #print("............\n")
+        #getHourEneAll()
         #resetHourAll()
 
-        printInfo(loads)
 
         #ohjauksen tarkistaminen pilvestä
         #ohjauksen tarkistaminen automaattisesti
         #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
-        running = False
+        if tiimari.read()>10:
+            running = False
+    printInfo(loads)
+    printInfo(phases)
 
 #muuttujien asettaminen ja tietojen lataaminen tiedostosta, ja hard
 #koodataan joidenkin muuttujien arvoja
+
+#luodaan timeri ajan mittaamiseen
+chrono = Timer.Chrono()
+tiimari = Timer.Chrono()
+latestTime = 0
+
+#oletetaan jännitteen pysyvän vakio 230-arvoisena
+voltage = 230
 
 #eri sulakkeiden maksimivirrat
 phaseMaxCur = 36
 loadMaxCur = 10
 
-#maksimi tuntiteho
+#maksimi tuntiteho ja tämänhetkisen tunnin kulutus ja raja-arvo
 maxHour = 2000
+hourThreshold = 0.9
 
 #tiedostojen nimet
 loadFile = "loads.txt"
@@ -132,7 +176,7 @@ openLoads(loads,loadFile)
 #avataan tiedot eri vaiheista tiedostosta
 phases = []
 openPhases(phases,phaseFile)
-#sortLoads(loads,phases)
+sortLoads(loads,phases)
 
 #avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
 monthMax = openMonthMax(monthMaxFile)
