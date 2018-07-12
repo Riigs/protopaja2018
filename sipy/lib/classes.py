@@ -29,6 +29,15 @@ class load:
 
         self.__lastTime = 0
 
+    def isInactive(self):
+        if self.__autoCont==1 or self.__manualCont==1:
+            return 1
+        else:
+            return 0
+
+    def getPriority(self):
+        return self.__priority
+
     def updateLastTime(self,time):
         self.__lastTime = time
 
@@ -112,8 +121,14 @@ class mainPhase:
         self.__maximumCurrent = maximumCurrent
         self.__threshold = 0.9
 
+    def loadPriorize(self):
+        self.__loads.sort(key=methodcaller('getPriority')
+
     def getCurHourEne(self):
         return self.__curHourEne
+
+    def returnLoads(self):
+        return self.__loads
 
     #antaa tämänhetkisen virran
     def getCurrent(self):
