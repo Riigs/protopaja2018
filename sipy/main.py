@@ -28,6 +28,8 @@ def sortLoads(loads,phases):
             phases[2].addLoad(load)
         else:
             print("Kuorma", load.getName() ,"ei kuulu mihinkään vaiheeseen.")
+    for phase in phases:
+        phase.loadPriorize()
 
 
 def openPhases(phases,phasesFile):
@@ -96,8 +98,6 @@ def main():
     chrono.start()
     tiimari.start()
     while running:
-        #mittaus
-        #getCurrentAll()
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
         if chrono.read() - latestTime >= 0.5:
             for load in loads:
@@ -110,7 +110,8 @@ def main():
 
                 power = current * voltage
                 newTime = chrono.read()
-                energy = power * (newTime - load.getLastTime())
+                #wattisekunnit wattitunneiksi
+                energy = power * (newTime - load.getLastTime()) / 3600
                 load.updateLastTime(newTime)
                 load.addCurHourEne(energy)
                 print("")
@@ -118,9 +119,22 @@ def main():
             totalEne = 0
             for phase in phases:
                 current = phase.getCurrent()
+                power = current * voltage
                 print("Vaiheen " + phase.getName() + " virta: "+str(current)+"A")
+
+                #verrataan virtaa maksimivirtaan ja tehoa maksimitehoon, poistetaan yksi pienimmän prioriteetin kuorma jos ylittyy
                 if current >= phase.getMaxCur():
-                    phase.relayDisconn()
+                    for load in phase.returnLoads():
+                        if !load.isInactive():
+                            load.relayDisconn()
+                            break
+
+                if power >= maxPower:
+                    for load in phase.returnLoads():
+                        if !load.isInactive():
+                            load.relayDisconn()
+                            break
+                            
                 #päivitetään nykyisen tunnin kulutus
                 phase.updateCurHourEne()
                 totalEne += phase.getCurHourEne()
@@ -129,19 +143,18 @@ def main():
             print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
             print("")
 
-        #hetkellisen kulutuksen laskeminen
-
-        #tämän tunnin kulutuksen päivittäminen
-        #print("............\n")
-        #getHourEneAll()
-        #resetHourAll()
-
+            if totalEne >= hourThreshold * maxHour:
+                for phase in phases:
+                    for load in phase.returnLoads():
+                        load.relayDisconn()
 
         #ohjauksen tarkistaminen pilvestä
         #ohjauksen tarkistaminen automaattisesti
         #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
+
         if tiimari.read()>10:
             running = False
+
     printInfo(loads)
     printInfo(phases)
 
@@ -154,14 +167,16 @@ tiimari = Timer.Chrono()
 latestTime = 0
 
 #oletetaan jännitteen pysyvän vakio 230-arvoisena
-voltage = 230
+voltage = 235
 
 #eri sulakkeiden maksimivirrat
 phaseMaxCur = 36
 loadMaxCur = 10
 
 #maksimi tuntiteho ja tämänhetkisen tunnin kulutus ja raja-arvo
+#yksiköt watteina ja wattitunteina
 maxHour = 2000
+maxPower = maxHour
 hourThreshold = 0.9
 
 #tiedostojen nimet
