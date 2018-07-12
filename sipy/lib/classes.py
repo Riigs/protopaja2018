@@ -27,6 +27,28 @@ class load:
         #kertoo mikä prioriteetti kuorman pudottamisella on (päättäkää suunta)
         self.__priority = priority
 
+        self.__lastTime = 0
+
+    def updateLastTime(self,time):
+        self.__lastTime = time
+
+    def getLastTime(self):
+        return self.__lastTime
+
+    #lisää curhoureneen kulutetun energian
+    def addCurHourEne(self,ene):
+        self.__curHourEne += ene
+
+    #antaa maksimivirran
+    def getMaxCur(self):
+        maxCur = self.__threshold*self.__maximumCurrent
+        return maxCur
+
+    #avaa releen
+    def relayDisconn(self):
+        self.__autoCont = 1
+        #tähän joku timeri joka palauttaa releen tilan jossain vaiheessa
+
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     #Lisäksi poistaa kuluneen tunnin tiedot
     def resetHour(self):
@@ -40,16 +62,11 @@ class load:
             return 0
 
     def getCurHourEne(self):
-        filename = str(self.__ID)+".txt"
-        path = "temp/" + filename
-        #path = os.path.join("temp", filename)
-        self.__curHourEne = 0
-
+        return self.__curHourEne
 
     #antaa tämänhetkisen virran
     def getCurrent(self):
         current = adc_read(self.__sensorPin)
-        #adc_save(current, self.__ID)
         return current
 
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
@@ -90,10 +107,37 @@ class mainPhase:
         self.__sensorPin = sensorPin
         self.__loads = []
 
-        #tämän tunnin kulutus, maksimi hetkellinen virta ja raja-arvjoino
+        #tämän tunnin kulutus, maksimi hetkellinen virta ja raja-arvo
         self.__curHourEne = 0
         self.__maximumCurrent = maximumCurrent
         self.__threshold = 0.9
+
+    def getCurHourEne(self):
+        return self.__curHourEne
+
+    #antaa tämänhetkisen virran
+    def getCurrent(self):
+        current = adc_read(self.__sensorPin)
+        return current
+
+    #antaa maksimivirran
+    def getMaxCur(self):
+        maxCur = self.__threshold*self.__maximumCurrent
+        return maxCur
+
+    #avaa releen
+    def relayDisconn(self):
+        self.__autoCont = 1
+        #tähän joku timeri joka palauttaa releen tilan jossain vaiheessa
+
+    #antaa vaiheen nimen
+    def getName(self):
+        return self.__name
+
+    def updateCurHourEne(self):
+        self.__curHourEne = 0
+        for load in self.__loads:
+            self.__curHourEne += load.getCurHourEne()
 
     #lisää vaiheeseen kuorman
     def addLoad(self,load):
@@ -113,7 +157,7 @@ class mainPhase:
         print("ID:",self.__ID)
         print("Pin of the sensor:",self.__sensorPin)
         print("This hour's consumed energy:",self.__curHourEne)
-        print("Maximum current of this load:",self.__maximumCurrent)
+        print("Maximum current of this phase:",self.__maximumCurrent)
         print("Loads:")
         if len(self.__loads) == 0:
             print("None")
