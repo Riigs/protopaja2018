@@ -86,7 +86,6 @@ def printInfo(data):
         data.info()
 
 
-
 #päälooppi
 def main():
     printInfo(loads)
@@ -97,6 +96,8 @@ def main():
     running = True
     chrono.start()
     tiimari.start()
+    #miks tää pitää tehä?????????? muuten kaatuu ilman syytä?
+    latestTime = 0
     while running:
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
         if chrono.read() - latestTime >= 0.5:
@@ -178,7 +179,6 @@ def main():
 #luodaan timeri ajan mittaamiseen
 chrono = Timer.Chrono()
 tiimari = Timer.Chrono()
-latestTime = 0
 
 #oletetaan jännitteen pysyvän vakio 230-arvoisena
 voltage = 235
