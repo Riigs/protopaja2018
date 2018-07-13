@@ -29,11 +29,11 @@ class load:
 
         self.__lastTime = 0
 
-    def isInactive(self):
+    def isActive(self):
         if self.__autoCont==1 or self.__manualCont==1:
-            return 1
+            return False
         else:
-            return 0
+            return True
 
     def getPriority(self):
         return self.__priority
