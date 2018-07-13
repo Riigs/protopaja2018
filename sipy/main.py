@@ -29,7 +29,7 @@ def sortLoads(loads,phases):
         else:
             print("Kuorma", load.getName() ,"ei kuulu mihinkään vaiheeseen.")
     for phase in phases:
-        phase.loadPriorize()
+        phase.loadPrioritize()
 
 
 def openPhases(phases,phasesFile):
@@ -102,21 +102,23 @@ def main():
         if chrono.read() - latestTime >= 0.5:
             latestTime = chrono.read()
             for load in loads:
-                #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
-                current = load.getCurrent()
-                print("Kuorman " + load.getName() + " virta: "+str(current)+"A")
-                #verrataan virtaa raja-arvoon ja avataan piiri jos virta ylittää rajan
-                if current >= load.getMaxCur():
-                    load.relayDisconn()
+                if load.isActive():
+                    #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
+                    current = load.getCurrent()
+                    print("Kuorman " + load.getName() + " virta: "+str(current)+"A")
+                    #verrataan virtaa raja-arvoon ja avataan piiri jos virta ylittää rajan
+                    if current >= load.getMaxCur():
+                        load.relayAutoOpen()
 
-                power = current * voltage
-                newTime = chrono.read()
-                #wattisekunnit wattitunneiksi
-                energy = power * (newTime - load.getLastTime()) / 3600
-                load.updateLastTime(newTime)
-                load.addCurHourEne(energy)
-                print("")
+                    power = current * voltage
+                    newTime = chrono.read()
+                    #wattisekunnit wattitunneiksi
+                    energy = power * (newTime - load.getLastTime()) / 3600
+                    load.updateLastTime(newTime)
+                    load.addCurHourEne(energy)
+                    print("")
 
+            #tehdään mittaukset ja rajoitukset päävaiheille
             totalEne = 0
             for phase in phases:
                 current = phase.getCurrent()
@@ -127,13 +129,12 @@ def main():
                 if current >= phase.getMaxCur():
                     for load in phase.returnLoads():
                         if load.isActive():
-                            load.relayDisconn()
+                            load.relayAutoOpen()
                             break
-
                 if power >= maxPower:
                     for load in phase.returnLoads():
                         if load.isActive():
-                            load.relayDisconn()
+                            load.relayAutoOpen()
                             break
 
                 #päivitetään nykyisen tunnin kulutus
@@ -141,13 +142,25 @@ def main():
                 totalEne += phase.getCurHourEne()
                 print("")
 
+            #kuormien palautus päälle
+            for load in loads:
+                if load.isActive() == False:
+                    #getPhase palauttaa 1-3, halutaan 0-2
+                    phaseNum = load.getPhase() - 1
+                    phasePower = phases[phaseNum].getLastCur() *voltage
+                    loadPower = load.getLastCur() * voltage
+                    #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
+                    if phasePower + loadPower < maxPower * hourThreshold:
+                        load.relayAutoClose()
+
+
             print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
             print("")
 
             if totalEne >= hourThreshold * maxHour:
                 for phase in phases:
                     for load in phase.returnLoads():
-                        load.relayDisconn()
+                        load.relayAutoOpen()
 
         #ohjauksen tarkistaminen pilvestä
         #ohjauksen tarkistaminen automaattisesti
