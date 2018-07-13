@@ -27,7 +27,13 @@ class load:
         #kertoo mikä prioriteetti kuorman pudottamisella on (päättäkää suunta)
         self.__priority = priority
 
+        #kertoo viimeisimmän virran
+        self.__lastCur = 0
+
         self.__lastTime = 0
+
+    def getLastCur(self):
+        return self.__lastCur
 
     def isActive(self):
         if self.__autoCont==1 or self.__manualCont==1:
@@ -54,9 +60,12 @@ class load:
         return maxCur
 
     #avaa releen
-    def relayDisconn(self):
+    def relayAutoOpen(self):
         self.__autoCont = 1
-        #tähän joku timeri joka palauttaa releen tilan jossain vaiheessa
+
+    #sulkee releen
+    def relayAutoClose(self):
+        self.__autoCont = 0
 
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     #Lisäksi poistaa kuluneen tunnin tiedot
@@ -76,6 +85,7 @@ class load:
     #antaa tämänhetkisen virran
     def getCurrent(self):
         current = adc_read(self.__sensorPin)
+        self.__lastCur = current
         return current
 
     #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
@@ -121,8 +131,13 @@ class mainPhase:
         self.__maximumCurrent = maximumCurrent
         self.__threshold = 0.9
 
-    def loadPriorize(self):
-        self.__loads.sort(key=methodcaller('getPriority')
+        self.__lastCur = 0
+
+    def getLastCur(self):
+        return self.__lastCur
+
+    def loadPrioritize(self):
+        self.__loads.sort(key=lambda load: load.getPriority())
 
     def getCurHourEne(self):
         return self.__curHourEne
@@ -133,6 +148,7 @@ class mainPhase:
     #antaa tämänhetkisen virran
     def getCurrent(self):
         current = adc_read(self.__sensorPin)
+        self.__lastCur = current
         return current
 
     #antaa maksimivirran
@@ -141,9 +157,12 @@ class mainPhase:
         return maxCur
 
     #avaa releen
-    def relayDisconn(self):
+    def relayAutoOpen(self):
         self.__autoCont = 1
-        #tähän joku timeri joka palauttaa releen tilan jossain vaiheessa
+
+    #sulkee releen
+    def relayAutoClose(self):
+        self.__autoCont = 0
 
     #antaa vaiheen nimen
     def getName(self):
@@ -193,8 +212,6 @@ class maxHourDate:
     def info(self):
         print("The biggest consumption in an hour this month:",self.__maxHour)
         print("And it was in:",self.__date)
-
-
 
 #testausta
 #kuorma1 = load("Lattialämmitys",12345,1,2,10,1,0)
