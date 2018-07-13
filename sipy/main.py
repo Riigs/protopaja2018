@@ -100,6 +100,7 @@ def main():
     while running:
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
         if chrono.read() - latestTime >= 0.5:
+            latestTime = chrono.read()
             for load in loads:
                 #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
                 current = load.getCurrent()
@@ -125,16 +126,16 @@ def main():
                 #verrataan virtaa maksimivirtaan ja tehoa maksimitehoon, poistetaan yksi pienimmän prioriteetin kuorma jos ylittyy
                 if current >= phase.getMaxCur():
                     for load in phase.returnLoads():
-                        if !load.isInactive():
+                        if load.isActive():
                             load.relayDisconn()
                             break
 
                 if power >= maxPower:
                     for load in phase.returnLoads():
-                        if !load.isInactive():
+                        if load.isActive():
                             load.relayDisconn()
                             break
-                            
+
                 #päivitetään nykyisen tunnin kulutus
                 phase.updateCurHourEne()
                 totalEne += phase.getCurHourEne()
