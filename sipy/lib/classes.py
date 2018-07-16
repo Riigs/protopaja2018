@@ -88,18 +88,19 @@ class load:
         self.__lastCur = current
         return current
 
-    #antaa tämänhetkisen kulutuksen ja tallentaa sen ID tiedostoon
-    def getCons(self):
-        cons = adc_read(self.__sensorPin)
-        adc_save(cons, self.__ID)
-        return cons
-
     #antaa kuorman nimen
     def getName(self):
         return self.__name
 
     def getPhase(self):
         return self.__phase
+
+    def getRelayPin(self):
+        return self.__relayPin
+
+    #palauttaa controllimuuttujat tuplessa (muuttumaton lista)
+    def getControlState(self):
+        return (self.__autoCont,self.__manualCont)
 
     #antaa infoa kuormasta
     def info(self):
@@ -180,10 +181,6 @@ class mainPhase:
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     def resetHour(self):
         self.__curHourEne = 0
-
-    #antaa tämänhetkisen kulutuksen
-    def getCons(self):
-        return adc_read(self.__sensorPin)
 
     #antaa infoa päävaiheesta
     def info(self):
