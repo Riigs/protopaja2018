@@ -1,8 +1,11 @@
 #importataan classes-filestä kaikki classit useemalla wild cardia
 from lib.classes import *
+from lib.ohjaus import *
 import time
 import os
 from machine import Timer
+
+pycom.heartbeat(False)
 
 #funktioiden määrittely
 def openLoads(loads,loadFile):
@@ -63,13 +66,6 @@ def getCurrentAll():
         print(load.getName(), v, "A")
         time.sleep(0.5)
 
-#Mittaa ja tulostaa jokaisen kuorman hetkellisen kulutuksen
-def getConsAll():
-    for load in loads:
-        v=load.getCons()
-        print(load.getName(), v)
-        time.sleep(0.5)
-
 def resetHourAll():
     for load in loads:
         load.resetHour()
@@ -96,20 +92,22 @@ def main():
     running = True
     chrono.start()
     tiimari.start()
-    #miks tää pitää tehä?????????? muuten kaatuu ilman syytä?
     latestTime = 0
     while running:
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
         if chrono.read() - latestTime >= 0.5:
+            pycom.rgbled(0x7f0000) # red
             latestTime = chrono.read()
             for load in loads:
                 if load.isActive():
                     #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
                     current = load.getCurrent()
                     print("Kuorman " + load.getName() + " virta: "+str(current)+"A")
+
                     #verrataan virtaa raja-arvoon ja avataan piiri jos virta ylittää rajan
-                    if current >= load.getMaxCur():
-                        load.relayAutoOpen()
+                    #tätä ei itse asiassa tarvitakaan
+                    #if current >= load.getMaxCur():
+                        #load.relayAutoOpen()
 
                     power = current * voltage
                     newTime = chrono.read()
@@ -148,7 +146,7 @@ def main():
                 if load.isActive() == False:
                     #getPhase palauttaa 1-3, halutaan 0-2
                     phaseNum = load.getPhase() - 1
-                    phasePower = phases[phaseNum].getLastCur() *voltage
+                    phasePower = phases[phaseNum].getLastCur() * voltage
                     loadPower = load.getLastCur() * voltage
                     #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
                     if phasePower + loadPower < maxPower * hourThreshold:
@@ -158,17 +156,27 @@ def main():
             print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
             print("")
 
-            if totalEne >= hourThreshold * maxHour:
-                for phase in phases:
-                    for load in phase.returnLoads():
-                        load.relayAutoOpen()
+            #kuormien sulku kun maksimienergia ylitetään
+            #if totalEne >= hourThreshold * maxHour:
+                #for phase in phases:
+                    #for load in phase.returnLoads():
+                        #load.relayAutoOpen()
 
-        #ohjauksen tarkistaminen pilvestä
-        #ohjauksen tarkistaminen automaattisesti
-        #releiden tilojen muuttaminen (virran katkominen tai palauttaminen)
+            #releiden ohjaus muuttujien mukaan
+            for load in loads:
+                controlVars = load.getControlState()
+                print("Name:",load.getName(),"Autocont:",controlVars[0],"Manualcont:",controlVars[1])
+                relayPin = load.getRelayPin()
+                autoCont = controlVars[0]
+                manualCont = controlVars[1]
+                control(relayPin,autoCont,manualCont)
 
-        if tiimari.read()>10:
-            running = False
+            pycom.rgbled(0x000000)
+
+        #ohjauksen tarkistaminen pilvestä tarvitaan viel
+
+        #if tiimari.read()>10:
+            #running = False
 
     printInfo(loads)
     printInfo(phases)
