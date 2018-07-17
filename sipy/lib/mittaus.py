@@ -27,9 +27,10 @@ def adc_read(sensorPin):
         i = 0
         val = 0
         apin = adc.channel(pin=sensorPin)
-        for i in range(2000):
+        for i in range(100):
             val += apin.voltage()
-        val = val/2000/1000
+        #jaetaan tuhannella jotta saadaan voltteja mikrovolttien sijaan
+        val = val/100/1000
         val = round(val,4)
         print("Value:",val)
         print("Voltage:",val)
