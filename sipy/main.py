@@ -96,7 +96,7 @@ def main():
     while running:
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
         if chrono.read() - latestTime >= 0.5:
-            pycom.rgbled(0x7f0000) # red
+            pycom.rgbled(0x330000) # red
             latestTime = chrono.read()
             for load in loads:
                 if load.isActive():
@@ -116,6 +116,17 @@ def main():
                     load.updateLastTime(newTime)
                     load.addCurHourEne(energy)
                     print("")
+
+                #kuormien palautus päälle
+                elif load.isActive() == False:
+                    #getPhase palauttaa 1-3, halutaan 0-2
+                    phaseNum = load.getPhase() - 1
+                    phasePower = phases[phaseNum].getLastCur() * voltage
+                    loadPower = load.getLastCur() * voltage
+                    #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
+                    if phasePower + loadPower < maxPower * hourThreshold:
+                        load.relayAutoClose()
+                        break
 
             #tehdään mittaukset ja rajoitukset päävaiheille
             totalEne = 0
@@ -141,18 +152,6 @@ def main():
                 totalEne += phase.getCurHourEne()
                 print("")
 
-            #kuormien palautus päälle
-            for load in loads:
-                if load.isActive() == False:
-                    #getPhase palauttaa 1-3, halutaan 0-2
-                    phaseNum = load.getPhase() - 1
-                    phasePower = phases[phaseNum].getLastCur() * voltage
-                    loadPower = load.getLastCur() * voltage
-                    #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
-                    if phasePower + loadPower < maxPower * hourThreshold:
-                        load.relayAutoClose()
-
-
             print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
             print("")
 
@@ -171,9 +170,10 @@ def main():
                 manualCont = controlVars[1]
                 control(relayPin,autoCont,manualCont)
 
+            #pycom.rgbled(0x000000)
+            print("Mittauksiin ja ohjauksiin kulunut aika:",chrono.read()-latestTime)
             pycom.rgbled(0x000000)
-
-        #ohjauksen tarkistaminen pilvestä tarvitaan viel
+            #ohjauksen tarkistaminen pilvestä tarvitaan viel
 
         #if tiimari.read()>10:
             #running = False
