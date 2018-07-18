@@ -29,8 +29,26 @@ class load:
 
         #kertoo viimeisimmän virran
         self.__lastCur = 0
-
+        #viimeisin mittaus
         self.__lastTime = 0
+
+        #tallentaa kulutuksia viimeisen 10s ajalta
+        self.__last10Sec = []
+
+        #milloin 10s -lista on viimeksi resetattu
+        self.__last10SecTime = 0
+
+    def getLast10SecTime(self):
+        return self.__last10SecTime
+
+    def setLast10SecTime(self,val):
+        self.__last10SecTime = val
+
+    def getLast10Sec(self):
+        return self.__last10Sec
+
+    def resetLast10Sec(self):
+        self.__last10Sec = []
 
     def getLastCur(self):
         return self.__lastCur
@@ -53,6 +71,7 @@ class load:
     #lisää curhoureneen kulutetun energian
     def addCurHourEne(self,ene):
         self.__curHourEne += ene
+        self.__last10Sec.append(ene)
 
     #antaa maksimivirran
     def getMaxCur(self):
