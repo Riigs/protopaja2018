@@ -1,9 +1,29 @@
 #importataan classes-filestä kaikki classit useemalla wild cardia
 from lib.classes import *
 from lib.ohjaus import *
+from machine import Timer
+from network import WLAN
 import time
 import os
-from machine import Timer
+import sys
+import lib.urequests as urequests
+
+#nettiin yhdistys
+wlan = WLAN(mode=WLAN.STA)
+nets = wlan.scan()
+for net in nets:
+    if net.ssid == 'testiverkko':
+        print('Network found!')
+        wlan.connect(net.ssid, auth=(net.sec, '27e235437e84'), timeout=5000)
+        while not wlan.isconnected():
+            machine.idle() # save power while waiting
+        print('WLAN connection succeeded!')
+        break
+
+#requestin testausta
+#response = urequests.get('http://jsonplaceholder.typicode.com/albums/1')
+#print(response.text)
+#sys.exit()
 
 pycom.heartbeat(False)
 
@@ -94,6 +114,23 @@ def main():
     tiimari.start()
     latestTime = 0
     while running:
+        #tarkistetaan onko kulunut 10s
+        for load in loads:
+            time = chrono.read()
+            if time - load.getLast10SecTime() >= 10:
+                #keskiarvon lasku
+                sum = 0
+                for val in load.getLast10Sec():
+                    sum += val
+                ave = sum/len(load.getLast10Sec())
+
+                #lataus pilveen
+                
+
+                #tyhjennetään lista ja asetetaan uusi resettausaika
+                load.setLast10SecTime(chrono.read())
+                load.resetLast10Sec()
+
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
         if chrono.read() - latestTime >= 0.5:
             pycom.rgbled(0x330000) # red
@@ -173,6 +210,7 @@ def main():
             #pycom.rgbled(0x000000)
             print("Mittauksiin ja ohjauksiin kulunut aika:",chrono.read()-latestTime)
             pycom.rgbled(0x000000)
+            print("Kulutuksia:",loads[0].getLast10Sec())
             #ohjauksen tarkistaminen pilvestä tarvitaan viel
 
         #if tiimari.read()>10:
