@@ -12,15 +12,15 @@ import lib.urequests as urequests
 wlan = WLAN(mode=WLAN.STA)
 nets = wlan.scan()
 for net in nets:
-    if net.ssid == 'testiverkko':
+    if net.ssid == 'aalto open':
         print('Network found!')
-        wlan.connect(net.ssid, auth=(net.sec, '27e235437e84'), timeout=5000)
+        wlan.connect(net.ssid, timeout=5000)
         while not wlan.isconnected():
             machine.idle() # save power while waiting
         print('WLAN connection succeeded!')
         break
 
-#requestin testausta
+#urequestin testausta
 #response = urequests.get('http://jsonplaceholder.typicode.com/albums/1')
 #print(response.text)
 #sys.exit()
@@ -79,6 +79,15 @@ def openMonthMax(maxFile):
     maxData.close()
     return val
 
+def openPass(passFile):
+    path = "files/" + passFile
+    passData = open(path,'r')
+    line = passData.readline()
+    data = line.split(',')
+    secret = [data[0],data[1]]
+    passData.close()
+    return secret
+
 #Mittaa ja tulostaa jokaisen kuorman virran
 def getCurrentAll():
     for load in loads:
@@ -124,8 +133,18 @@ def main():
                     sum += val
                 ave = sum/len(load.getLast10Sec())
 
+                input = load.getName()+' power='+str(ave)
+                #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
+                url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
+                print(url)
+                resp = urequests.post(url,data=input.encode())
+                print(resp.status_code)
+
                 #lataus pilveen
-                
+#https://forum.micropython.org/viewtopic.php?t=3969
+#https://forum.pycom.io/topic/1061/https-post-using-urequests-py-and-guru-mediation-error
+#https://techtutorialsx.com/2017/06/11/esp32-esp8266-micropython-http-get-requests/
+#https://docs.python.org/2/tutorial/datastructures.html
 
                 #tyhjennetään lista ja asetetaan uusi resettausaika
                 load.setLast10SecTime(chrono.read())
@@ -151,7 +170,7 @@ def main():
                     #wattisekunnit wattitunneiksi
                     energy = power * (newTime - load.getLastTime()) / 3600
                     load.updateLastTime(newTime)
-                    load.addCurHourEne(energy)
+                    load.addCurHourEne(energy,power)
                     print("")
 
                 #kuormien palautus päälle
@@ -210,7 +229,7 @@ def main():
             #pycom.rgbled(0x000000)
             print("Mittauksiin ja ohjauksiin kulunut aika:",chrono.read()-latestTime)
             pycom.rgbled(0x000000)
-            print("Kulutuksia:",loads[0].getLast10Sec())
+            print("Kulutuksia:",loads[1].getLast10Sec())
             #ohjauksen tarkistaminen pilvestä tarvitaan viel
 
         #if tiimari.read()>10:
@@ -243,9 +262,11 @@ hourThreshold = 0.9
 loadFile = "loads.txt"
 phaseFile = "phases.txt"
 monthMaxFile = "monthMax.txt"
+passFile = "pass.txt"
 
 #avataan eri kuormat tiedostosta
 loads = []
+#kuormien nimet pitää olla ilman ääkkösiä
 openLoads(loads,loadFile)
 
 #avataan tiedot eri vaiheista tiedostosta
@@ -255,6 +276,11 @@ sortLoads(loads,phases)
 
 #avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
 monthMax = openMonthMax(monthMaxFile)
+
+#avataan salasanat ja käyttäjät tiedostosta
+#tiedosto muotoa:
+#username,password,mitä tahansa tekstiä
+secrets = openPass(passFile)
 
 #käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
 #importata toiseen tiedostoon
