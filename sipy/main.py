@@ -123,7 +123,7 @@ def main():
     tiimari.start()
     latestTime = 0
     while running:
-        #tarkistetaan onko kulunut 10s
+        #tarkistetaan onko kulunut 10s ja lähetetään dataa
         for load in loads:
             time = chrono.read()
             if time - load.getLast10SecTime() >= 10:
@@ -131,24 +131,59 @@ def main():
                 sum = 0
                 for val in load.getLast10Sec():
                     sum += val
-                ave = sum/len(load.getLast10Sec())
 
-                input = load.getName()+' power='+str(ave)
+                #otetaan huomioon nollatapaus
+                if len(load.getLast10Sec())==0:
+                    ave = 0
+                else:
+                    ave = sum/len(load.getLast10Sec())
+
+                input = load.getName()+' power='+str(ave)+',totalEne='+str(load.getCurHourEne())
+                print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
                 print(url)
-                resp = urequests.post(url,data=input.encode())
-                print(resp.status_code)
-
-                #lataus pilveen
-#https://forum.micropython.org/viewtopic.php?t=3969
-#https://forum.pycom.io/topic/1061/https-post-using-urequests-py-and-guru-mediation-error
-#https://techtutorialsx.com/2017/06/11/esp32-esp8266-micropython-http-get-requests/
-#https://docs.python.org/2/tutorial/datastructures.html
+                #joskus datan lataus epäonnistuu ja ohjelma kaatuu ilman try-exceptiä
+                try:
+                    resp = urequests.post(url,data=input.encode())
+                except:
+                    pass
 
                 #tyhjennetään lista ja asetetaan uusi resettausaika
                 load.setLast10SecTime(chrono.read())
                 load.resetLast10Sec()
+
+        #tarkistetaan onko kulunut 10s ja lähetetään dataa
+        for phase in phases:
+            time = chrono.read()
+            if time - phase.getLast10SecTime() >= 10:
+                #keskiarvon lasku
+                sum = 0
+                for val in phase.getLast10Sec():
+                    sum += val
+
+                #otetaan huomioon nollatapaus
+                if len(phase.getLast10Sec())==0:
+                    ave = 0
+                else:
+                    ave = sum/len(phase.getLast10Sec())
+
+                input = phase.getName()+' power='+str(ave)+',totalEne='+str(phase.getCurHourEne())
+                print(input)
+                #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
+                url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
+                print(url)
+
+                #tarvitaan try except mahdollisen kaatumisen estämiseksi
+                try:
+                    resp = urequests.post(url,data=input.encode())
+                    print(resp.status_code)
+                except:
+                    pass
+
+                #tyhjennetään lista ja asetetaan uusi resettausaika
+                phase.setLast10SecTime(chrono.read())
+                phase.resetLast10Sec()
 
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
         if chrono.read() - latestTime >= 0.5:
@@ -266,7 +301,7 @@ passFile = "pass.txt"
 
 #avataan eri kuormat tiedostosta
 loads = []
-#kuormien nimet pitää olla ilman ääkkösiä
+#kuormien nimet pitää olla ilman ääkkösiä,ei välilyöntejä,
 openLoads(loads,loadFile)
 
 #avataan tiedot eri vaiheista tiedostosta
