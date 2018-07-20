@@ -153,6 +153,24 @@ class mainPhase:
 
         self.__lastCur = 0
 
+        #tallentaa tehoja viimeisen 10s ajalta
+        self.__last10Sec = []
+
+        #milloin 10s -lista on viimeksi resetattu
+        self.__last10SecTime = 0
+
+    def getLast10SecTime(self):
+        return self.__last10SecTime
+
+    def setLast10SecTime(self,val):
+        self.__last10SecTime = val
+
+    def getLast10Sec(self):
+        return self.__last10Sec
+
+    def resetLast10Sec(self):
+        self.__last10Sec = []
+
     def getLastCur(self):
         return self.__lastCur
 
