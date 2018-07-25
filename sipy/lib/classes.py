@@ -241,20 +241,6 @@ class mainPhase:
             print(load.getName())
         print("")
 
-
-
-#luokka kuukauden maksimitunnille, kertoo sekä tunnin kulutuksen, että päivämäärän
-class maxHourDate:
-    def __init__(self,maxHour,day,month,year):
-        self.__maxHour = maxHour
-        self.__month = month
-        self.__year = year
-        self.__date = str(day) + "." + str(self.__month) + "." +  str(self.__year)
-
-    def info(self):
-        print("The biggest consumption in an hour this month:",self.__maxHour)
-        print("And it was in:",self.__date)
-
 #testausta
 #kuorma1 = load("Lattialämmitys",12345,1,2,10,1,0)
 #kuorma1.info()
