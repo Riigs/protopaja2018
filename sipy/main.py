@@ -188,6 +188,7 @@ def main():
                 load.setCurHourEne(0)
             for phase in phases:
                 phase.setCurHourEne(0)
+            setMeasTime(measTime,curTime)
 
         #tarkistetaan onko kulunut 10s ja lähetetään dataa
         for load in loads:
