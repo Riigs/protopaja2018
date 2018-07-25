@@ -85,18 +85,6 @@ def openPhases(phases,phasesFile):
     phasesData.close()
     return
 
-def openMonthMax(maxFile):
-    #path = os.path.join("files", maxFile)
-    path = "files/" + maxFile
-    maxData = open(path,'r')
-    line = maxData.readline()
-    data = line.split(',')
-    val = maxHourDate(0,0,0,0)
-    if len(data) == 4:
-        val = maxHourDate(int(data[0]),int(data[1]),int(data[2]),int(data[3]))
-    maxData.close()
-    return val
-
 def openPass(passFile):
     path = "files/" + passFile
     passData = open(path,'r')
@@ -105,6 +93,12 @@ def openPass(passFile):
     secret = [data[0],data[1]]
     passData.close()
     return secret
+
+def setMeasTime(measTime,curHour):
+    measTime[0] = curHour[0]
+    measTime[1] = curHour[1]
+    measTime[2] = curHour[2]
+    measTime[3] = curHour[3]
 
 def parseStringToTime(string):
     year = int(string[0:4])
@@ -140,6 +134,7 @@ def getCloudEnes(list,rtc,secrets):
             if lastTime[0]==curTime[0] and lastTime[1]==curTime[1] and lastTime[2]==curTime[2] and lastTime[3]==curTime[3]:
                 ene = jsonOut["results"][0]["series"][0]["values"][0][1]
                 thing.setCurHourEne(ene)
+                setMeasTime(measTime,curTime)
 
         except:
             print("Query failed.")
@@ -173,7 +168,6 @@ def printInfo(data):
 def main():
     printInfo(loads)
     printInfo(phases)
-    printInfo(monthMax)
     print("............\n")
 
     running = True
@@ -181,6 +175,20 @@ def main():
     tiimari.start()
     latestTime = 0
     while running:
+
+        #tarkistetaan onko tunti vaihtunut, jos on, nollataan tuntikulutukset
+        time = rtc.now()
+        year = time[0]
+        month = time[1]
+        day = time[2]
+        hour = time[3]
+        curTime = [year,month,day,hour]
+        if (measTime[0]==curTime[0] and measTime[1]==curTime[1] and measTime[2]==curTime[2] and measTime[3]==curTime[3])==False:
+            for load in loads:
+                load.setCurHourEne(0)
+            for phase in phases:
+                phase.setCurHourEne(0)
+
         #tarkistetaan onko kulunut 10s ja lähetetään dataa
         for load in loads:
             time = chrono.read()
@@ -354,7 +362,6 @@ hourThreshold = 0.9
 #tiedostojen nimet
 loadFile = "loads.txt"
 phaseFile = "phases.txt"
-monthMaxFile = "monthMax.txt"
 passFile = "pass.txt"
 
 #avataan eri kuormat tiedostosta
@@ -375,8 +382,15 @@ while rtc.synced()==False:
 rtc.ntp_sync(None,100)
 print("Sync complete!")
 
-#avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
-monthMax = openMonthMax(monthMaxFile)
+#mitä tuntia mitataan nyt
+measTime = [2018,12,25,13]
+time = rtc.now()
+year = time[0]
+month = time[1]
+day = time[2]
+hour = time[3]
+curTime = [year,month,day,hour]
+setMeasTime(measTime,curTime)
 
 #avataan salasanat ja käyttäjät tiedostosta
 #tiedosto muotoa:
