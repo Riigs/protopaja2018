@@ -163,6 +163,12 @@ class mainPhase:
         #milloin 10s -lista on viimeksi resetattu
         self.__last10SecTime = 0
 
+        #viimeisin mitattu teho
+        self.__lastPower = 0
+
+    def getLastPower(self):
+        return self.__lastPower
+
     def getLast10SecTime(self):
         return self.__last10SecTime
 
