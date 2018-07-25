@@ -3,6 +3,7 @@ from lib.classes import *
 from lib.ohjaus import *
 from machine import Timer
 from network import WLAN
+from machine import RTC
 import time
 import os
 import sys
@@ -19,6 +20,23 @@ for net in nets:
             machine.idle() # save power while waiting
         print('WLAN connection succeeded!')
         break
+
+
+#rtc:n testausta
+#rtc = RTC()
+#rtc.ntp_sync("fi.pool.ntp.org",100)
+
+#while rtc.synced()==False:
+#    print("Waiting for sync...")
+#rtc.ntp_sync(None,100)
+
+#tim = rtc.now()
+#print(tim)
+#hour = tim[3]
+#year = tim[0]
+#print("Tunti:",hour,"Vuosi:",year)
+#sys.exit()
+
 
 #urequestin testausta
 #response = urequests.get('http://jsonplaceholder.typicode.com/albums/1')
@@ -87,6 +105,46 @@ def openPass(passFile):
     secret = [data[0],data[1]]
     passData.close()
     return secret
+
+def parseStringToTime(string):
+    year = int(string[0:4])
+    month = int(string[5:7])
+    day = int(string[8:10])
+    hour = int(string[11:13])
+    return [year,month,day,hour]
+
+#lataa pilvestä kulutukset nykyiselle tunnille ja asettaa ne
+def getCloudEnes(list,rtc,secrets):
+    url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/query?db=newtest&u="+secrets[0]+"&p="+secrets[1]+"&pretty=true"
+
+    for thing in list:
+        time = rtc.now()
+        year = time[0]
+        month = time[1]
+        day = time[2]
+        hour = time[3]
+        curTime = [year,month,day,hour]
+
+        name = thing.getName()
+        query = '&q=SELECT+last(totalEne)+FROM+"'+name+'"'
+        try:
+            resp = urequests.get(url+query)
+            print(resp.status_code)
+            jsonOut = resp.json()
+
+            print(jsonOut)
+            print("Aika:",jsonOut["results"][0]["series"][0]["values"][0][0])
+            print("Arvo:",jsonOut["results"][0]["series"][0]["values"][0][1])
+
+            lastTime = parseStringToTime(jsonOut["results"][0]["series"][0]["values"][0][0])
+            if lastTime[0]==curTime[0] and lastTime[1]==curTime[1] and lastTime[2]==curTime[2] and lastTime[3]==curTime[3]:
+                ene = jsonOut["results"][0]["series"][0]["values"][0][1]
+                thing.setCurHourEne(ene)
+
+        except:
+            print("Query failed.")
+            pass
+
 
 #Mittaa ja tulostaa jokaisen kuorman virran
 def getCurrentAll():
@@ -309,6 +367,14 @@ phases = []
 openPhases(phases,phaseFile)
 sortLoads(loads,phases)
 
+#kellon päivittäminen uudelleenkäynnistyksessä internetin kautta
+rtc = RTC()
+rtc.ntp_sync("fi.pool.ntp.org",100)
+while rtc.synced()==False:
+    print("Waiting for sync...")
+rtc.ntp_sync(None,100)
+print("Sync complete!")
+
 #avataan tiedot kuukauden suurimmasta tuntitehosta tiedostosta
 monthMax = openMonthMax(monthMaxFile)
 
@@ -316,6 +382,10 @@ monthMax = openMonthMax(monthMaxFile)
 #tiedosto muotoa:
 #username,password,mitä tahansa tekstiä
 secrets = openPass(passFile)
+
+#ladataan nykyisen tunnin kulutukset pilvestä
+getCloudEnes(loads,rtc,secrets)
+getCloudEnes(phases,rtc,secrets)
 
 #käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
 #importata toiseen tiedostoon
