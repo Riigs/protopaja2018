@@ -277,29 +277,28 @@ def main():
 
                 #kuormien palautus päälle
                 elif load.isActive() == False:
-                    #getPhase palauttaa 1-3, halutaan 0-2
-                    phaseNum = load.getPhase() - 1
-                    phasePower = phases[phaseNum].getLastCur() * voltage
+                    #lasketaan kokonaisteho järjestelmässä
+                    totalPower = 0
+                    for phase in phases:
+                        totalPower += phase.getLastPower()
+
                     loadPower = load.getLastCur() * voltage
                     #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
-                    if phasePower + loadPower < maxPower * hourThreshold:
+                    if totalPower + loadPower < maxPower * hourThreshold:
                         load.relayAutoClose()
                         break
 
             #tehdään mittaukset ja rajoitukset päävaiheille
             totalEne = 0
+            totalPower = 0
             for phase in phases:
                 current = phase.getCurrent()
                 power = current * voltage
+                totalPower += power
                 print("Vaiheen " + phase.getName() + " virta: "+str(current)+"A")
 
                 #verrataan virtaa maksimivirtaan ja tehoa maksimitehoon, poistetaan yksi pienimmän prioriteetin kuorma jos ylittyy
                 if current >= phase.getMaxCur():
-                    for load in phase.returnLoads():
-                        if load.isActive():
-                            load.relayAutoOpen()
-                            break
-                if power >= maxPower:
                     for load in phase.returnLoads():
                         if load.isActive():
                             load.relayAutoOpen()
@@ -309,6 +308,15 @@ def main():
                 phase.updateCurHourEne()
                 totalEne += phase.getCurHourEne()
                 print("")
+
+            #jos järjestelmän kokonaisteho ylittää maksimitehon, sammutetaan kuormia, järjestetään vaiheet niiden kulutuksen mukaan, laskevasti
+            phases.sort(key=lambda phase: phase.getLastPower(),reverse=True)
+            if totalPower >= maxPower:
+                for phase in phases:
+                    for load in phase.returnLoads():
+                        if load.isActive():
+                            load.relayAutoOpen()
+                            break
 
             print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
             print("")
