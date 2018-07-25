@@ -68,6 +68,10 @@ class load:
     def getLastTime(self):
         return self.__lastTime
 
+    #määrittää tunnin kulutuksen käynnistyksessä
+    def setCurHourEne(self,ene):
+        self.__curHourEne = ene
+
     #lisää curhoureneen kulutetun energian
     def addCurHourEne(self,ene,power):
         self.__curHourEne += ene
@@ -205,6 +209,10 @@ class mainPhase:
     #antaa vaiheen nimen
     def getName(self):
         return self.__name
+
+    #määrittää tunnin kulutuksen käynnistyksessä
+    def setCurHourEne(self,ene):
+        self.__curHourEne = ene
 
     def updateCurHourEne(self):
         self.__curHourEne = 0
