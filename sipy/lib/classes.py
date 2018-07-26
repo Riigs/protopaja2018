@@ -90,6 +90,14 @@ class load:
     def relayAutoClose(self):
         self.__autoCont = 0
 
+    #avaa releen
+    def relayManualOpen(self):
+        self.__manualCont = 1
+
+    #sulkee releen
+    def relayManualClose(self):
+        self.__manualCont = 0
+
     #kutsutaan tunnin välein, resettaa tunnin kulutuksen
     #Lisäksi poistaa kuluneen tunnin tiedot
     def resetHour(self):
@@ -203,14 +211,6 @@ class mainPhase:
     def getMaxCur(self):
         maxCur = self.__threshold*self.__maximumCurrent
         return maxCur
-
-    #avaa releen
-    def relayAutoOpen(self):
-        self.__autoCont = 1
-
-    #sulkee releen
-    def relayAutoClose(self):
-        self.__autoCont = 0
 
     #antaa vaiheen nimen
     def getName(self):
