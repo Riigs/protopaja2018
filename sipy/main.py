@@ -307,7 +307,7 @@ def main():
                 elif load.isActive() == False and minutes<30:
                     curEne = getTotalEnergy(phases)
                     maxEne = maxHour/2
-                    if curEne<maxEne:
+                    if curEne < maxEne * hourThreshold:
                         load.relayAutoClose()
 
             #tehdään mittaukset ja rajoitukset päävaiheille
@@ -343,7 +343,7 @@ def main():
                             load.relayAutoOpen()
                             break
             #tätä kutsutaan kun ollaan tunnin aikaisemmassa puolikkaassa
-            elif curEne>= maxEne*hourThreshold and minutes<30:
+            elif curEne >= maxEne and minutes<30:
                 for phase in phases:
                     for load in phase.returnLoads():
                         if load.isActive():
@@ -361,7 +361,7 @@ def main():
             #releiden ohjaus muuttujien mukaan
             for load in loads:
                 controlVars = load.getControlState()
-                #print("Name:",load.getName(),"Autocont:",controlVars[0],"Manualcont:",controlVars[1])
+                print("Name:",load.getName(),"Autocont:",controlVars[0],"Manualcont:",controlVars[1])
                 relayPin = load.getRelayPin()
                 autoCont = controlVars[0]
                 manualCont = controlVars[1]
