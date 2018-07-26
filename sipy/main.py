@@ -123,12 +123,12 @@ def getCloudEnes(list,rtc,secrets):
         query = '&q=SELECT+last(totalEne)+FROM+"'+name+'"'
         try:
             resp = urequests.get(url+query)
-            print(resp.status_code)
+            #print(resp.status_code)
             jsonOut = resp.json()
 
-            print(jsonOut)
-            print("Aika:",jsonOut["results"][0]["series"][0]["values"][0][0])
-            print("Arvo:",jsonOut["results"][0]["series"][0]["values"][0][1])
+            #print(jsonOut)
+            #print("Aika:",jsonOut["results"][0]["series"][0]["values"][0][0])
+            #print("Arvo:",jsonOut["results"][0]["series"][0]["values"][0][1])
 
             lastTime = parseStringToTime(jsonOut["results"][0]["series"][0]["values"][0][0])
             if lastTime[0]==curTime[0] and lastTime[1]==curTime[1] and lastTime[2]==curTime[2] and lastTime[3]==curTime[3]:
@@ -140,6 +140,69 @@ def getCloudEnes(list,rtc,secrets):
             print("Query failed.")
             pass
 
+#palauttaa kuukauden viimeisen päivän
+def getFinalDay(month,year):
+    if month==1 or month==3 or month==5 or month==7 or month==8 or month==10 or month==12:
+        return 31
+    elif month==4 or month==6 or month==9 or month==11:
+        return 30
+
+    elif month==2:
+        if year%4==0:
+            if year%100==0:
+                if year%400==0:
+                    return 29
+                else:
+                    return 28
+            else:
+                return 29
+        else:
+            return 28
+
+#tulostaa kuukauden ajalta suurimman kulutuksen tunnin tiedot ja palauttaa kulutuksen
+def getCloudMaxHourPower(rtc,secrets,thing):
+    time = rtc.now()
+    year = time[0]
+    month = time[1]
+    day = time[2]
+    hour = time[3]
+
+    stringMonth = month
+    if stringMonth/10<1:
+        stringMonth = "0"+str(stringMonth)
+    else:
+        stringMonth = str(stringMonth)
+
+    finalDay = getFinalDay(month,year)
+    stringDay = str(finalDay)
+
+    name = thing.getName()
+    minTim = "'"+str(year)+"-"+stringMonth+"-"+"01'"
+    maxTim = "'"+str(year)+"-"+stringMonth+"-"+stringDay+"'"
+    ene = 0
+
+    #print(minTim)
+    #print(maxTim)
+
+    try:
+        url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/query?db=newtest&u="+secrets[0]+"&p="+secrets[1]+"&pretty=true"
+        query = '&q=SELECT+max(totalEne)+FROM+'+name+'+WHERE+time>='+minTim+'+AND+time<='+maxTim
+
+        resp = urequests.get(url+query)
+        #print(resp.status_code)
+        jsonOut = resp.json()
+        #print(jsonOut)
+
+        ene = jsonOut["results"][0]["series"][0]["values"][0][1]
+        time = parseStringToTime(jsonOut["results"][0]["series"][0]["values"][0][0])
+        print("")
+        #tällä hetkellä lisää 3h koska utc, mutta ei pysy samana koska kesä- ja talviaika
+        print("The greatest hourly power this month was: "+str(ene)+", and this hour was in: "+str(time[2])+"."+str(time[1])+"."+str(time[0])+" "+str(time[3]+3)+"-"+str(time[3]+1+3))
+        print("")
+    except:
+         pass
+
+    return ene
 
 #Mittaa ja tulostaa jokaisen kuorman virran
 def getCurrentAll():
@@ -454,6 +517,10 @@ secrets = openPass(passFile)
 #ladataan nykyisen tunnin kulutukset pilvestä
 getCloudEnes(loads,rtc,secrets)
 getCloudEnes(phases,rtc,secrets)
+
+monthMax = 0
+for phase in phases:
+    monthMax += getCloudMaxHourPower(rtc,secrets,phase)
 
 #käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
 #importata toiseen tiedostoon
