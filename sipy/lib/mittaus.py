@@ -32,8 +32,8 @@ def adc_read(sensorPin):
         #jaetaan tuhannella jotta saadaan voltteja mikrovolttien sijaan
         val = val/100/1000
         val = round(val,4)
-        print("Value:",val)
-        print("Voltage:",val)
+        #print("Value:",val)
+        #print("Voltage:",val)
         current = valToCurrent(val)
         return current
     except:
