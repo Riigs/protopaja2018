@@ -225,11 +225,24 @@ def main():
                 #print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
+                url2 = "temp"
                 #print(url)
                 #joskus datan lataus epäonnistuu ja ohjelma kaatuu ilman try-exceptiä
                 try:
-                    resp = urequests.post(url,data=input.encode())
+                    urequests.post(url,data=input.encode())
                 except:
+                    pass
+
+                #haetaan samalla manualControl arvot netistä (pitäisikö tehdä useammin kuin 10 sek välein?)
+                try:
+                    data = urequests.get(url2)
+                    manualVal = 0 #tässä käsitellään dataa jotenkin sopivasti
+                    if manualVal==1:
+                        load.relayManualOpen()
+                    elif manualVal==0:
+                        load.relayManualClose()
+                except:
+                    print("Error getting manualCont values.")
                     pass
 
                 #tyhjennetään lista ja asetetaan uusi resettausaika
