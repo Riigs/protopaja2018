@@ -163,6 +163,11 @@ def printInfo(data):
     except:
         data.info()
 
+def getTotalEnergy(phases):
+    total = 0
+    for phase in phases:
+        total += phase.getCurHourEne()
+    return total
 
 #päälooppi
 def main():
@@ -170,10 +175,13 @@ def main():
     printInfo(phases)
     print("............\n")
 
+    maxPower = maxHour
+
     running = True
     chrono.start()
     tiimari.start()
     latestTime = 0
+    latestPowerTime = 0
     while running:
 
         #tarkistetaan onko tunti vaihtunut, jos on, nollataan tuntikulutukset
@@ -182,6 +190,8 @@ def main():
         month = time[1]
         day = time[2]
         hour = time[3]
+        minutes = time[4]
+        seconds = time[5]
         curTime = [year,month,day,hour]
         if (measTime[0]==curTime[0] and measTime[1]==curTime[1] and measTime[2]==curTime[2] and measTime[3]==curTime[3])==False:
             for load in loads:
@@ -189,6 +199,12 @@ def main():
             for phase in phases:
                 phase.setCurHourEne(0)
             setMeasTime(measTime,curTime)
+
+        #lasketaan uusi maksimiteho, ottaen huomioon kulutettu energia (joka viides sekunti) (käytetään vain jälkimmäisessä tunnin puolikkaassa)
+        if chrono.read()-latestPowerTime>5:
+            remainingTime = 3600 - minutes*60 - seconds
+            maxPower = (maxHour-getTotalEnergy(phases))/(remainingTime/3600)
+            latestPowerTime = chrono.read()
 
         #tarkistetaan onko kulunut 10s ja lähetetään dataa
         for load in loads:
@@ -206,10 +222,10 @@ def main():
                     ave = sum/len(load.getLast10Sec())
 
                 input = load.getName()+' power='+str(ave)+',totalEne='+str(load.getCurHourEne())
-                print(input)
+                #print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
-                print(url)
+                #print(url)
                 #joskus datan lataus epäonnistuu ja ohjelma kaatuu ilman try-exceptiä
                 try:
                     resp = urequests.post(url,data=input.encode())
@@ -236,15 +252,15 @@ def main():
                     ave = sum/len(phase.getLast10Sec())
 
                 input = phase.getName()+' power='+str(ave)+',totalEne='+str(phase.getCurHourEne())
-                print(input)
+                #print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
-                print(url)
+                #print(url)
 
                 #tarvitaan try except mahdollisen kaatumisen estämiseksi
                 try:
                     resp = urequests.post(url,data=input.encode())
-                    print(resp.status_code)
+                    #print(resp.status_code)
                 except:
                     pass
 
@@ -260,7 +276,7 @@ def main():
                 if load.isActive():
                     #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
                     current = load.getCurrent()
-                    print("Kuorman " + load.getName() + " virta: "+str(current)+"A")
+                    #print("Kuorman " + load.getName() + " virta: "+str(current)+"A")
 
                     #verrataan virtaa raja-arvoon ja avataan piiri jos virta ylittää rajan
                     #tätä ei itse asiassa tarvitakaan
@@ -273,10 +289,10 @@ def main():
                     energy = power * (newTime - load.getLastTime()) / 3600
                     load.updateLastTime(newTime)
                     load.addCurHourEne(energy,power)
-                    print("")
+                    #print("")
 
-                #kuormien palautus päälle
-                elif load.isActive() == False:
+                #kuormien palautus päälle, jälkimmäisessä tunnin puolikkaassa
+                elif load.isActive() == False and minutes>=30:
                     #lasketaan kokonaisteho järjestelmässä
                     totalPower = 0
                     for phase in phases:
@@ -286,7 +302,13 @@ def main():
                     #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
                     if totalPower + loadPower < maxPower * hourThreshold:
                         load.relayAutoClose()
-                        break
+
+                #kuormien palautus päälle, aikaisemmassa tunnin puolikkaassa
+                elif load.isActive() == False and minutes<30:
+                    curEne = getTotalEnergy(phases)
+                    maxEne = maxHour/2
+                    if curEne<maxEne:
+                        load.relayAutoClose()
 
             #tehdään mittaukset ja rajoitukset päävaiheille
             totalEne = 0
@@ -295,7 +317,7 @@ def main():
                 current = phase.getCurrent()
                 power = current * voltage
                 totalPower += power
-                print("Vaiheen " + phase.getName() + " virta: "+str(current)+"A")
+                #print("Vaiheen " + phase.getName() + " virta: "+str(current)+"A")
 
                 #verrataan virtaa maksimivirtaan ja tehoa maksimitehoon, poistetaan yksi pienimmän prioriteetin kuorma jos ylittyy
                 if current >= phase.getMaxCur():
@@ -310,16 +332,25 @@ def main():
                 print("")
 
             #jos järjestelmän kokonaisteho ylittää maksimitehon, sammutetaan kuormia, järjestetään vaiheet niiden kulutuksen mukaan, laskevasti
+            #tämä pätee myöhemmässä tunnin puolikkaassa
+            curEne = getTotalEnergy(phases)
+            maxEne = maxHour/2
             phases.sort(key=lambda phase: phase.getLastPower(),reverse=True)
-            if totalPower >= maxPower:
+            if totalPower >= maxPower and minutes >= 30:
                 for phase in phases:
                     for load in phase.returnLoads():
                         if load.isActive():
                             load.relayAutoOpen()
                             break
+            #tätä kutsutaan kun ollaan tunnin aikaisemmassa puolikkaassa
+            elif curEne>= maxEne*hourThreshold and minutes<30:
+                for phase in phases:
+                    for load in phase.returnLoads():
+                        if load.isActive():
+                            load.relayAutoOpen()
 
-            print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
-            print("")
+            #print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
+            #print("")
 
             #kuormien sulku kun maksimienergia ylitetään
             #if totalEne >= hourThreshold * maxHour:
@@ -330,16 +361,17 @@ def main():
             #releiden ohjaus muuttujien mukaan
             for load in loads:
                 controlVars = load.getControlState()
-                print("Name:",load.getName(),"Autocont:",controlVars[0],"Manualcont:",controlVars[1])
+                #print("Name:",load.getName(),"Autocont:",controlVars[0],"Manualcont:",controlVars[1])
                 relayPin = load.getRelayPin()
                 autoCont = controlVars[0]
                 manualCont = controlVars[1]
                 control(relayPin,autoCont,manualCont)
 
-            #pycom.rgbled(0x000000)
-            print("Mittauksiin ja ohjauksiin kulunut aika:",chrono.read()-latestTime)
+            #print("Mittauksiin ja ohjauksiin kulunut aika:",chrono.read()-latestTime)
             pycom.rgbled(0x000000)
-            print("Kulutuksia:",loads[1].getLast10Sec())
+            print("Tehoja:",loads[1].getLast10Sec())
+            print("CurEne:",getTotalEnergy(phases),"MaxEne:",maxHour/2)
+            print("Max power=",maxPower)
             #ohjauksen tarkistaminen pilvestä tarvitaan viel
 
         #if tiimari.read()>10:
