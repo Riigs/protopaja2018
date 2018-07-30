@@ -447,7 +447,7 @@ def main():
             pycom.rgbled(0x000000)
             print("Tehoja:",loads[1].getLast10Sec())
             print("CurEne:",getTotalEnergy(phases),"MaxEne:",maxHour/2)
-            print("Max power=",maxPower)
+            print("Max power =",maxPower)
             #ohjauksen tarkistaminen pilvestä tarvitaan viel
 
         #if tiimari.read()>10:
