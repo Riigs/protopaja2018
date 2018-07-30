@@ -392,6 +392,7 @@ def main():
             for phase in phases:
                 current = phase.getCurrent()
                 power = current * voltage
+                phase.addLast10Sec(power)
                 totalPower += power
                 #print("Vaiheen " + phase.getName() + " virta: "+str(current)+"A")
 
