@@ -220,6 +220,9 @@ class mainPhase:
     def setCurHourEne(self,ene):
         self.__curHourEne = ene
 
+    def addLast10Sec(self,power):
+        self.__last10Sec.append(power)
+
     def updateCurHourEne(self):
         self.__curHourEne = 0
         for load in self.__loads:
