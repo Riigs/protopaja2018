@@ -376,14 +376,14 @@ def main():
 
                     loadPower = load.getLastCur() * voltage
                     #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
-                    if totalPower + loadPower < maxPower * hourThreshold:
+                    if totalPower + loadPower < maxPower * hourThreshold and phases[load.getPhase()].getLastCur() + load.getLastTime() < phase.getMaxCur():
                         load.relayAutoClose()
 
                 #kuormien palautus päälle, aikaisemmassa tunnin puolikkaassa
                 elif load.isActive() == False and minutes<30:
                     curEne = getTotalEnergy(phases)
                     maxEne = maxHour/2
-                    if curEne < maxEne * hourThreshold:
+                    if curEne < maxEne * hourThreshold and phases[load.getPhase()].getLastCur() + load.getLastTime() < phase.getMaxCur():
                         load.relayAutoClose()
 
             #tehdään mittaukset ja rajoitukset päävaiheille
