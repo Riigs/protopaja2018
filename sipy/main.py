@@ -2,8 +2,10 @@
 from lib.classes import *
 from lib.ohjaus import *
 from machine import Timer
-from network import WLAN
 from machine import RTC
+from machine import Pin
+from network import WLAN
+import machine
 import time
 import os
 import sys
@@ -20,28 +22,6 @@ for net in nets:
             machine.idle() # save power while waiting
         print('WLAN connection succeeded!')
         break
-
-
-#rtc:n testausta
-#rtc = RTC()
-#rtc.ntp_sync("fi.pool.ntp.org",100)
-
-#while rtc.synced()==False:
-#    print("Waiting for sync...")
-#rtc.ntp_sync(None,100)
-
-#tim = rtc.now()
-#print(tim)
-#hour = tim[3]
-#year = tim[0]
-#print("Tunti:",hour,"Vuosi:",year)
-#sys.exit()
-
-
-#urequestin testausta
-#response = urequests.get('http://jsonplaceholder.typicode.com/albums/1')
-#print(response.text)
-#sys.exit()
 
 pycom.heartbeat(False)
 
@@ -241,10 +221,16 @@ def main():
     maxPower = maxHour
 
     running = True
+
     chrono.start()
     tiimari.start()
     latestTime = 0
     latestPowerTime = 0
+    #while True:
+        #for load in loads:
+            #current = load.getCurrent()
+            #print(current)
+        #Timer.sleep_us(100000)
     while running:
 
         #tarkistetaan onko tunti vaihtunut, jos on, nollataan tuntikulutukset
@@ -352,13 +338,6 @@ def main():
                 if load.isActive():
                     #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
                     current = load.getCurrent()
-                    #print("Kuorman " + load.getName() + " virta: "+str(current)+"A")
-
-                    #verrataan virtaa raja-arvoon ja avataan piiri jos virta ylittää rajan
-                    #tätä ei itse asiassa tarvitakaan
-                    #if current >= load.getMaxCur():
-                        #load.relayAutoOpen()
-
                     power = current * voltage
                     newTime = chrono.read()
                     #wattisekunnit wattitunneiksi
