@@ -3,13 +3,17 @@ import os
 
 #luokka kuormille
 class load:
-    def __init__(self,name,ID,sensorPin,relayPin,maximumCurrent,phase,priority):
+    def __init__(self,name,ID,commandbits,relayPin,maximumCurrent,phase,priority):
         #kuorman nimi ja ID-numero
         self.__name = name
         self.__ID = ID
 
-        #sensorien ja releiden pinnit
-        self.__sensorPin = sensorPin
+        #releiden pinnit ja jännitteen luennan komentobitit
+        #command bits - start, mode, chn (3), dont care (3)
+        combits = []
+        for letter in commandbits:
+            combits.append(int(letter))
+        self.__commandbits = combits
         self.__relayPin = relayPin
 
         #tämän tunnin kulutus, hetkellinen maksimivirta ja raja-arvo
@@ -98,30 +102,21 @@ class load:
     def relayManualClose(self):
         self.__manualCont = 0
 
-    #kutsutaan tunnin välein, resettaa tunnin kulutuksen
-    #Lisäksi poistaa kuluneen tunnin tiedot
-    def resetHour(self):
-        filename = str(self.__ID)+".txt"
-        path = "temp/" + filename
-        #path = os.path.join("temp", filename)
-        try:
-            rm(path)
-            return 1
-        except:
-            return 0
-
     def getCurHourEne(self):
         return self.__curHourEne
 
     #antaa tämänhetkisen virran
     def getCurrent(self):
-        current = adc_read(self.__sensorPin)
+        current = adcRead(self.getCommandbits())
         self.__lastCur = current
         return current
 
     #antaa kuorman nimen
     def getName(self):
         return self.__name
+
+    def getCommandbits(self):
+        return self.__commandbits
 
     def getPhase(self):
         return self.__phase
@@ -138,7 +133,6 @@ class load:
         print("Name:",self.__name)
         print("ID:",self.__ID)
         print("This load is part of the phase:",self.__phase)
-        print("Pin of the sensor:",self.__sensorPin)
         print("Pin of the relay:",self.__relayPin)
         print("This hour's consumed energy:",self.__curHourEne)
         print("Maximum current of this load:",self.__maximumCurrent)
@@ -149,19 +143,24 @@ class load:
 
 #luokka päävaiheille
 class mainPhase:
-    def __init__(self,name,ID,sensorPin,maximumCurrent):
+    def __init__(self,name,ID,commandbits,maximumCurrent):
         #päävaiheen nimi ja ID-numero
         self.__name = name
         self.__ID = ID
 
-        #virtasensorin pinni ja lista, jossa vaiheen kuormat
-        self.__sensorPin = sensorPin
+        #lista, jossa vaiheen kuormat
         self.__loads = []
 
         #tämän tunnin kulutus, maksimi hetkellinen virta ja raja-arvo
         self.__curHourEne = 0
         self.__maximumCurrent = maximumCurrent
         self.__threshold = 0.9
+
+        #command bits - start, mode, chn (3), dont care (3)
+        combits = []
+        for letter in commandbits:
+            combits.append(int(letter))
+        self.__commandbits = combits
 
         self.__lastCur = 0
 
@@ -203,7 +202,7 @@ class mainPhase:
 
     #antaa tämänhetkisen virran
     def getCurrent(self):
-        current = adc_read(self.__sensorPin)
+        current = adcRead(self.getCommandbits())
         self.__lastCur = current
         return current
 
@@ -215,6 +214,9 @@ class mainPhase:
     #antaa vaiheen nimen
     def getName(self):
         return self.__name
+
+    def getCommandbits(self):
+        return self.__commandbits
 
     #määrittää tunnin kulutuksen käynnistyksessä
     def setCurHourEne(self,ene):
@@ -240,7 +242,6 @@ class mainPhase:
     def info(self):
         print("Name:",self.__name)
         print("ID:",self.__ID)
-        print("Pin of the sensor:",self.__sensorPin)
         print("This hour's consumed energy:",self.__curHourEne)
         print("Maximum current of this phase:",self.__maximumCurrent)
         print("Loads:")
