@@ -1,74 +1,68 @@
 import time
 import os
+from math import *
 
 try:
     import pycom
-    import machine
+    from machine import Pin
 
-    adc = machine.ADC()
-    #adc.vref(1166)
-
-    #input voltagen laittaminen p22 pinniin
-    #dac = machine.DAC('P21')        # create a DAC object
-    #dac.write(0.1)
-
-    #perusjännitteen mittaus
-    #from machine import ADC
-    #adc = ADC()
-    #adc.vref_to_pin('P21')
+    #määritellään pinnit spi-kommunikaatiolle
+    chipPin = Pin('P12', mode=Pin.OUT)
+    mosi = Pin('P11',mode=Pin.OUT)
+    miso = Pin('P10',mode=Pin.IN)
+    clock = Pin('P9',mode=Pin.OUT)
+    #disable device to start with
+    chipPin(1)
+    mosi(1)
+    clock(0)
 
 except ImportError:
     print("Sipy disconnected")
     pass
 
+vref = 4.611
+
+#lukee yhden arvon
+def getReading(commandbits,ave):
+    adcvalue = 0
+
+    chipPin(0) #Select adc
+    # setup bits to be written
+    i = 0
+    while i < 5:
+        mosi(commandbits[i])
+        #cycle clock
+        clock(1)
+        clock(0)
+        i+=1
+
+    clock(1)    #ignores 2 null bits
+    clock(0)
+    clock(1)
+    clock(0)
+
+    #read bits from adc
+    i = 11
+    while i >=0:
+        adcvalue += miso()*pow(2,i)
+        #cycle clock
+        clock(1)
+        clock(0)
+        i -= 1
+
+    chipPin(1) #turn off device
+    if ave==0:
+        ave = adcvalue/4095*vref
+    else:
+        ave = (ave*9+adcvalue/4095*vref)/10
+    return ave
+
 #Palauttaa jännitteen lukeman
-def adc_read(sensorPin):
-    try:
-        i = 0
-        val = 0
-        apin = adc.channel(pin=sensorPin)
-        for i in range(100):
-            val += apin.voltage()
-        #jaetaan tuhannella jotta saadaan voltteja mikrovolttien sijaan
-        val = val/100/1000
-        val = round(val,4)
-        #print("Value:",val)
-        #print("Voltage:",val)
-        current = valToCurrent(val)
-        return current
-    except:
-        print("No reading from pin", sensorPin)
-        return 0
-
-def valToCurrent(val):
-    #oletusarvona 12-bittinen mittaus
-    bits = 12
-    #virran, jännitteiden ja saadun arvon välisistä suhteista johdettu kaava
-    current = 50.0*val/(1.1)
-    return round(current,4)
-
-#Tallentaa lukeman kansioon temp/ID.txt
-def adc_save(val, ID):
-    filename = str(ID)+".txt"
-    #path = os.path.join("temp", filename)
-    path = "temp/" + filename
-    print(path)
-    #f = open(path,'a+')
-    #f.write(str(val)+"\n")
-    #f.close()
-    with open(path, "a+") as f:
-        f.write(str(val)+"\n")
-
-def adcFileRead():
-    file = open("temp/12345.txt", 'r')
-    data = file.read()
-    print(data)
-    file.close()
-
-def rm(filename):
-    os.remove(filename)
-
-def val_to_volt(val):
-    max = 4095
-    u = (val/max)*1.1
-    return round(u,4)
+def adcRead(commandbits):
+    value = 0
+    i = 0
+    while i<10:
+        value=getReading(commandbits,value)
+        i+=1
+    current = value/vref * 50
+    return current
