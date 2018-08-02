@@ -115,6 +115,9 @@ class load:
     def getName(self):
         return self.__name
 
+    def getID(self):
+        return self.__ID
+
     def getCommandbits(self):
         return self.__commandbits
 
@@ -214,6 +217,9 @@ class mainPhase:
     #antaa vaiheen nimen
     def getName(self):
         return self.__name
+
+    def getID(self):
+        return self.__ID
 
     def getCommandbits(self):
         return self.__commandbits
