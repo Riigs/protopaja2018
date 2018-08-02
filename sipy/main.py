@@ -100,7 +100,8 @@ def getCloudEnes(list,rtc,secrets):
         curTime = [year,month,day,hour]
 
         name = thing.getName()
-        query = '&q=SELECT+last(totalEne)+FROM+"'+name+'"'
+        query = '&q=SELECT+last(totalEne)+FROM+"Measurement"+WHERE+"id"=\''+str(thing.getID())+"\'"
+        #print(query)
         try:
             resp = urequests.get(url+query)
             #print(resp.status_code)
@@ -156,7 +157,6 @@ def getCloudMaxHourPower(rtc,secrets,thing):
     finalDay = getFinalDay(month,year)
     stringDay = str(finalDay)
 
-    name = thing.getName()
     minTim = "'"+str(year)+"-"+stringMonth+"-"+"01'"
     maxTim = "'"+str(year)+"-"+stringMonth+"-"+stringDay+"'"
     ene = 0
@@ -166,7 +166,7 @@ def getCloudMaxHourPower(rtc,secrets,thing):
 
     try:
         url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/query?db=newtest&u="+secrets[0]+"&p="+secrets[1]+"&pretty=true"
-        query = '&q=SELECT+max(totalEne)+FROM+'+name+'+WHERE+time>='+minTim+'+AND+time<='+maxTim
+        query = '&q=SELECT+max(totalEne)+FROM+"Measurement"+WHERE+"id"=\''+str(thing.getID())+'\'+AND+time>='+minTim+'+AND+time<='+maxTim
 
         resp = urequests.get(url+query)
         #print(resp.status_code)
@@ -178,10 +178,10 @@ def getCloudMaxHourPower(rtc,secrets,thing):
         print("")
         #tällä hetkellä lisää 3h koska utc, mutta ei pysy samana koska kesä- ja talviaika
         print("The greatest hourly power this month was: "+str(ene)+", and this hour was in: "+str(time[2])+"."+str(time[1])+"."+str(time[0])+" "+str(time[3]+3)+"-"+str(time[3]+1+3))
-        print("")
     except:
          pass
 
+    print("")
     return ene
 
 #Mittaa ja tulostaa jokaisen kuorman virran
@@ -270,7 +270,8 @@ def main():
                 else:
                     ave = sum/len(load.getLast10Sec())
 
-                input = load.getName()+' power='+str(ave)+',totalEne='+str(load.getCurHourEne())
+                #mittaus, tagit id ja nimi, fieldit teho ja energia
+                input = 'Measurement,id='+str(load.getID())+',name='+load.getName()+' power='+str(ave)+',totalEne='+str(load.getCurHourEne())
                 #print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
@@ -313,7 +314,7 @@ def main():
                 else:
                     ave = sum/len(phase.getLast10Sec())
 
-                input = phase.getName()+' power='+str(ave)+',totalEne='+str(phase.getCurHourEne())
+                input = 'Measurement,id='+str(phase.getID())+',name='+phase.getName()+' power='+str(ave)+',totalEne='+str(phase.getCurHourEne())
                 #print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
