@@ -184,21 +184,6 @@ def getCloudMaxHourPower(rtc,secrets,thing):
     print("")
     return ene
 
-#Mittaa ja tulostaa jokaisen kuorman virran
-def getCurrentAll():
-    for load in loads:
-        v=load.getCurrent()
-        print(load.getName(), v, "A")
-        time.sleep(0.5)
-
-def resetHourAll():
-    for load in loads:
-        load.resetHour()
-
-def getHourEneAll():
-    for load in loads:
-        load.getCurHourEne()
-
 def printInfo(data):
     try:
         for piece in data:
@@ -223,14 +208,8 @@ def main():
     running = True
 
     chrono.start()
-    tiimari.start()
     latestTime = 0
     latestPowerTime = 0
-    #while True:
-        #for load in loads:
-            #current = load.getCurrent()
-            #print(current)
-        #Timer.sleep_us(100000)
     while running:
 
         #tarkistetaan onko tunti vaihtunut, jos on, nollataan tuntikulutukset
@@ -345,7 +324,6 @@ def main():
                     energy = power * (newTime - load.getLastTime()) / 3600
                     load.updateLastTime(newTime)
                     load.addCurHourEne(energy,power)
-                    #print("")
 
                 #kuormien palautus päälle, jälkimmäisessä tunnin puolikkaassa
                 elif load.isActive() == False and minutes>=30:
@@ -374,7 +352,6 @@ def main():
                 power = current * voltage
                 phase.addLast10Sec(power)
                 totalPower += power
-                #print("Vaiheen " + phase.getName() + " virta: "+str(current)+"A")
 
                 #verrataan virtaa maksimivirtaan ja tehoa maksimitehoon, poistetaan yksi pienimmän prioriteetin kuorma jos ylittyy
                 if current >= phase.getMaxCur():
@@ -406,15 +383,6 @@ def main():
                         if load.isActive():
                             load.relayAutoOpen()
 
-            #print("Tunnin kokonaiskulutus tähän mennessä:",totalEne)
-            #print("")
-
-            #kuormien sulku kun maksimienergia ylitetään
-            #if totalEne >= hourThreshold * maxHour:
-                #for phase in phases:
-                    #for load in phase.returnLoads():
-                        #load.relayAutoOpen()
-
             #releiden ohjaus muuttujien mukaan
             for load in loads:
                 controlVars = load.getControlState()
@@ -424,15 +392,11 @@ def main():
                 manualCont = controlVars[1]
                 control(relayPin,autoCont,manualCont)
 
-            #print("Mittauksiin ja ohjauksiin kulunut aika:",chrono.read()-latestTime)
             pycom.rgbled(0x000000)
             print("Tehoja:",loads[1].getLast10Sec())
             print("CurEne:",getTotalEnergy(phases),"MaxEne:",maxHour/2)
             print("Max power =",maxPower)
             #ohjauksen tarkistaminen pilvestä tarvitaan viel
-
-        #if tiimari.read()>10:
-            #running = False
 
     printInfo(loads)
     printInfo(phases)
@@ -442,7 +406,6 @@ def main():
 
 #luodaan timeri ajan mittaamiseen
 chrono = Timer.Chrono()
-tiimari = Timer.Chrono()
 
 #oletetaan jännitteen pysyvän vakio 230-arvoisena
 voltage = 235
