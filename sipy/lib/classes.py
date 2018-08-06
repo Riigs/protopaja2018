@@ -107,7 +107,7 @@ class load:
 
     #antaa tämänhetkisen virran
     def getCurrent(self):
-        current = adcRead(self.getCommandbits())
+        current = adcRead(self.getCommandbits(),20)
         self.__lastCur = current
         return current
 
@@ -205,7 +205,7 @@ class mainPhase:
 
     #antaa tämänhetkisen virran
     def getCurrent(self):
-        current = adcRead(self.getCommandbits())
+        current = adcRead(self.getCommandbits(),50)
         self.__lastCur = current
         return current
 
