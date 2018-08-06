@@ -326,7 +326,8 @@ def main():
                     load.addCurHourEne(energy,power)
 
                 #kuormien palautus päälle, jälkimmäisessä tunnin puolikkaassa
-                elif load.isActive() == False and minutes>=30:
+                #and minutes>=30
+                elif load.isActive() == False:
                     #lasketaan kokonaisteho järjestelmässä
                     totalPower = 0
                     for phase in phases:
@@ -338,11 +339,11 @@ def main():
                         load.relayAutoClose()
 
                 #kuormien palautus päälle, aikaisemmassa tunnin puolikkaassa
-                elif load.isActive() == False and minutes<30:
-                    curEne = getTotalEnergy(phases)
-                    maxEne = maxHour/2
-                    if curEne < maxEne * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastTime() < phase.getMaxCur():
-                        load.relayAutoClose()
+                #elif load.isActive() == False and minutes<30:
+                    #curEne = getTotalEnergy(phases)
+                    #maxEne = maxHour/2
+                    #if curEne < maxEne * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastTime() < phase.getMaxCur():
+                        #load.relayAutoClose()
 
             #tehdään mittaukset ja rajoitukset päävaiheille
             totalEne = 0
@@ -370,18 +371,18 @@ def main():
             curEne = getTotalEnergy(phases)
             maxEne = maxHour/2
             phases.sort(key=lambda phase: phase.getLastPower(),reverse=True)
-            if totalPower >= maxPower and minutes >= 30:
+            if totalPower >= maxPower:
                 for phase in phases:
                     for load in phase.returnLoads():
                         if load.isActive():
                             load.relayAutoOpen()
                             break
             #tätä kutsutaan kun ollaan tunnin aikaisemmassa puolikkaassa
-            elif curEne >= maxEne and minutes<30:
-                for phase in phases:
-                    for load in phase.returnLoads():
-                        if load.isActive():
-                            load.relayAutoOpen()
+            #elif curEne >= maxEne and minutes<30:
+                #for phase in phases:
+                    #for load in phase.returnLoads():
+                        #if load.isActive():
+                            #load.relayAutoOpen()
 
             #releiden ohjaus muuttujien mukaan
             for load in loads:
@@ -394,7 +395,7 @@ def main():
 
             pycom.rgbled(0x000000)
             print("Tehoja:",loads[1].getLast10Sec())
-            print("CurEne:",getTotalEnergy(phases),"MaxEne:",maxHour/2)
+            print("CurEne:",getTotalEnergy(phases))
             print("Max power =",maxPower)
             #ohjauksen tarkistaminen pilvestä tarvitaan viel
 
