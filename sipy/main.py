@@ -341,7 +341,7 @@ def main():
                 elif load.isActive() == False and minutes<30:
                     curEne = getTotalEnergy(phases)
                     maxEne = maxHour/2
-                    if curEne < maxEne * hourThreshold and phases[load.getPhase()].getLastCur() + load.getLastTime() < phase.getMaxCur():
+                    if curEne < maxEne * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastTime() < phase.getMaxCur():
                         load.relayAutoClose()
 
             #tehdään mittaukset ja rajoitukset päävaiheille
