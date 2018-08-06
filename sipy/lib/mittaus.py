@@ -58,11 +58,11 @@ def getReading(commandbits,ave):
     return ave
 
 #Palauttaa jännitteen lukeman
-def adcRead(commandbits):
+def adcRead(commandbits,maxCur):
     value = 0
     i = 0
     while i<10:
         value=getReading(commandbits,value)
         i+=1
-    current = value/vref * 50
+    current = value/vref * maxCur
     return current
