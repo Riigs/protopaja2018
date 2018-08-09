@@ -26,16 +26,21 @@ for net in nets:
 pycom.heartbeat(False)
 
 #funktioiden määrittely
-def openLoads(loads,loadFile):
-    #path = os.path.join("files", loadFile)
-    path = "files/" + loadFile
-    loadData = open(path,'r')
-    for line in loadData:
-        data = line.split(',')
-        if len(data) == 7:
-            newLoad = load(data[0],int(data[1]),data[2],data[3],int(data[4]),int(data[5]),int(data[6]))
-            loads.append(newLoad)
-    loadData.close()
+def openLoads(loads):
+    #path = "files/" + loadFile
+    #loadData = open(path,'r')
+    #try:
+    resp = urequests.get('https://salty-mountain-85076.herokuapp.com/api/loads')
+    loadData = resp.json()
+    for nuload in loadData:
+        #data = line.split(',')
+        #if len(data) == 7:
+        #newLoad = load(data[0],int(data[1]),data[2],data[3],int(data[4]),int(data[5]),int(data[6]))
+        newLoad = load(nuload['name'],nuload['id'],nuload['commandBits'],nuload['relayPin'],int(nuload['maxCurrent']),int(nuload['phase']),
+            int(nuload['priority']))
+        loads.append(newLoad)
+    #loadData.close()
+    #except:
     return
 
 def sortLoads(loads,phases):
@@ -52,17 +57,20 @@ def sortLoads(loads,phases):
     for phase in phases:
         phase.loadPrioritize()
 
-
 def openPhases(phases,phasesFile):
     #path = os.path.join("files", phasesFile)
-    path = "files/" + phasesFile
-    phasesData = open(path,'r')
-    for line in phasesData:
-        data = line.split(',')
-        if len(data) == 4:
-            newPhase = mainPhase(data[0],int(data[1]),data[2],int(data[3]))
-            phases.append(newPhase)
-    phasesData.close()
+    #path = "files/" + phasesFile
+    #phasesData = open(path,'r')
+    #try:
+    resp = urequests.get('https://salty-mountain-85076.herokuapp.com/api/phases')
+    phasesData = resp.json()
+    for phase in phasesData:
+        #data = line.split(',')
+        #if len(data) == 4:
+        newPhase = mainPhase(phase['name'],phase['id'],phase['commandBits'],int(phase['maxCurrent']))
+        phases.append(newPhase)
+    #phasesData.close()
+    #except:
     return
 
 def openPass(passFile):
@@ -208,7 +216,7 @@ def main():
                 phase.setCurHourEne(0)
             setMeasTime(measTime,curTime)
 
-        #lasketaan uusi maksimiteho, ottaen huomioon kulutettu energia (joka viides sekunti) (käytetään vain jälkimmäisessä tunnin puolikkaassa)
+        #lasketaan uusi maksimiteho, ottaen huomioon kulutettu energia (joka viides sekunti)
         if chrono.read()-latestPowerTime>5:
             remainingTime = 3600 - minutes*60 - seconds
             maxPower = (maxHour-getTotalEnergy(phases))/(remainingTime/3600)
@@ -234,7 +242,7 @@ def main():
                 #print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
-                url2 = "temp"
+                url2 = "https://salty-mountain-85076.herokuapp.com/api/loads/"+load.getID()+"/contValue"
                 #print(url)
                 #joskus datan lataus epäonnistuu ja ohjelma kaatuu ilman try-exceptiä
                 try:
@@ -245,7 +253,7 @@ def main():
                 #haetaan samalla manualControl arvot netistä (pitäisikö tehdä useammin kuin 10 sek välein?)
                 try:
                     data = urequests.get(url2)
-                    manualVal = 0 #tässä käsitellään dataa jotenkin sopivasti
+                    manualVal = int(data.json())
                     if manualVal==1:
                         load.relayManualOpen()
                     elif manualVal==0:
@@ -409,7 +417,7 @@ passFile = "pass.txt"
 #avataan eri kuormat tiedostosta
 loads = []
 #kuormien nimet pitää olla ilman ääkkösiä,ei välilyöntejä,
-openLoads(loads,loadFile)
+openLoads(loads)
 
 #avataan tiedot eri vaiheista tiedostosta
 phases = []
