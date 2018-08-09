@@ -140,33 +140,13 @@ def getFinalDay(month,year):
         else:
             return 28
 
-#tulostaa kuukauden ajalta suurimman kulutuksen tunnin tiedot ja palauttaa kulutuksen
-def getCloudMaxHourPower(rtc,secrets,thing):
-    time = rtc.now()
-    year = time[0]
-    month = time[1]
-    day = time[2]
-    hour = time[3]
-
-    stringMonth = month
-    if stringMonth/10<1:
-        stringMonth = "0"+str(stringMonth)
-    else:
-        stringMonth = str(stringMonth)
-
-    finalDay = getFinalDay(month,year)
-    stringDay = str(finalDay)
-
-    minTim = "'"+str(year)+"-"+stringMonth+"-"+"01'"
-    maxTim = "'"+str(year)+"-"+stringMonth+"-"+stringDay+"'"
+#tulostaa 12 kuukauden ajalta suurimman kulutuksen tunnin tiedot ja palauttaa kulutuksen
+def getCloudMaxHourPower(secrets,thing):
     ene = 0
-
-    #print(minTim)
-    #print(maxTim)
 
     try:
         url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/query?db=newtest&u="+secrets[0]+"&p="+secrets[1]+"&pretty=true"
-        query = '&q=SELECT+max(totalEne)+FROM+"Measurement"+WHERE+"id"=\''+str(thing.getID())+'\'+AND+time>='+minTim+'+AND+time<='+maxTim
+        query = '&q=SELECT+max(totalEne)+FROM+"Measurement"+WHERE+"id"=\''+str(thing.getID())+'\'+AND+time>=now()-365d'
 
         resp = urequests.get(url+query)
         #print(resp.status_code)
@@ -177,7 +157,7 @@ def getCloudMaxHourPower(rtc,secrets,thing):
         time = parseStringToTime(jsonOut["results"][0]["series"][0]["values"][0][0])
         print("")
         #tällä hetkellä lisää 3h koska utc, mutta ei pysy samana koska kesä- ja talviaika
-        print("The greatest hourly power this month was: "+str(ene)+", and this hour was in: "+str(time[2])+"."+str(time[1])+"."+str(time[0])+" "+str(time[3]+3)+"-"+str(time[3]+1+3))
+        print("The greatest hourly power in the last 12 months was: "+str(ene)+", and this hour was in: "+str(time[2])+"."+str(time[1])+"."+str(time[0])+" "+str(time[3]+3)+"-"+str(time[3]+1+3))
     except:
          pass
 
@@ -465,7 +445,7 @@ getCloudEnes(phases,rtc,secrets)
 
 monthMax = 0
 for phase in phases:
-    monthMax += getCloudMaxHourPower(rtc,secrets,phase)
+    monthMax += getCloudMaxHourPower(secrets,phase)
 
 #käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
 #importata toiseen tiedostoon
