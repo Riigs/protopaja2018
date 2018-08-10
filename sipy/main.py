@@ -6,7 +6,10 @@ from machine import RTC
 from machine import Pin
 from network import WLAN
 import machine
+import usocket
 import time
+import ujson
+import _thread
 import os
 import sys
 import lib.urequests as urequests
@@ -100,11 +103,11 @@ def getCloudEnes(list,rtc,secrets):
     url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/query?db=newtest&u="+secrets[0]+"&p="+secrets[1]+"&pretty=true"
 
     for thing in list:
-        time = rtc.now()
-        year = time[0]
-        month = time[1]
-        day = time[2]
-        hour = time[3]
+        timeNow = rtc.now()
+        year = timeNow[0]
+        month = timeNow[1]
+        day = timeNow[2]
+        hour = timeNow[3]
         curTime = [year,month,day,hour]
 
         name = thing.getName()
@@ -162,10 +165,10 @@ def getCloudMaxHourPower(secrets,thing):
         #print(jsonOut)
 
         ene = jsonOut["results"][0]["series"][0]["values"][0][1]
-        time = parseStringToTime(jsonOut["results"][0]["series"][0]["values"][0][0])
+        newtime = parseStringToTime(jsonOut["results"][0]["series"][0]["values"][0][0])
         print("")
         #tällä hetkellä lisää 3h koska utc, mutta ei pysy samana koska kesä- ja talviaika
-        print("The greatest hourly power in the last 12 months was: "+str(ene)+", and this hour was in: "+str(time[2])+"."+str(time[1])+"."+str(time[0])+" "+str(time[3]+3)+"-"+str(time[3]+1+3))
+        print("The greatest hourly power in the last 12 months was: "+str(ene)+", and this hour was in: "+str(newtime[2])+"."+str(newtime[1])+"."+str(newtime[0])+" "+str(newtime[3]+3)+"-"+str(newtime[3]+1+3))
     except:
          pass
 
@@ -185,6 +188,25 @@ def getTotalEnergy(phases):
         total += phase.getCurHourEne()
     return total
 
+def getControlValues(threadLoads):
+    while True:
+        try:
+            url = 'http://salty-mountain-85076.herokuapp.com/api/loads'
+            threadData = urequests.get(url).json()
+            for threadUnit in threadData:
+                for threadLoad in threadLoads:
+                        if threadLoad.getID()==threadUnit['id']:
+                            threadVal = int(threadUnit['contValue'])
+                            if threadVal==1:
+                                threadLoad.relayManualOpen()
+                            elif threadVal==0:
+                                threadLoad.relayManualClose()
+                                break;
+        except:
+            print("Error getting manualCont values.")
+            pass
+        time.sleep(5)
+
 #päälooppi
 def main():
     printInfo(loads)
@@ -193,6 +215,9 @@ def main():
     maxPower = maxHour
     running = True
 
+    #tarkistetaan ohjaukset pilvestä tietyin väliajoin
+    _thread.start_new_thread(getControlValues, ([loads]))
+
     chrono.start()
     latestMeasTime = 0
     latestPowerTime = 0
@@ -200,13 +225,13 @@ def main():
     while running:
 
         #tarkistetaan onko tunti vaihtunut, jos on, nollataan tuntikulutukset
-        time = rtc.now()
-        year = time[0]
-        month = time[1]
-        day = time[2]
-        hour = time[3]
-        minutes = time[4]
-        seconds = time[5]
+        timeNow = rtc.now()
+        year = timeNow[0]
+        month = timeNow[1]
+        day = timeNow[2]
+        hour = timeNow[3]
+        minutes = timeNow[4]
+        seconds = timeNow[5]
         curTime = [year,month,day,hour]
         if (measTime[0]==curTime[0] and measTime[1]==curTime[1] and measTime[2]==curTime[2] and measTime[3]==curTime[3])==False:
             for load in loads:
@@ -221,29 +246,10 @@ def main():
             maxPower = (maxHour-getTotalEnergy(phases))/(remainingTime/3600)
             latestPowerTime = chrono.read()
 
-        #tarkistetaan ohjaukset pilvestä tietyin väliajoin
-        if chrono.read()-latestManControlTime>5:
-            url = "https://salty-mountain-85076.herokuapp.com/api/loads/"
-            try:
-                data = urequests.get(url).json()
-                for unit in data:
-                    for load in loads:
-                        if load.getID()==unit['id']:
-                            manualVal = int(unit['contValue'])
-                            if manualVal==1:
-                                load.relayManualOpen()
-                            elif manualVal==0:
-                                load.relayManualClose()
-                                break;
-            except:
-                print("Error getting manualCont values.")
-                pass
-            latestManControlTime = chrono.read()
-
         #tarkistetaan onko kulunut 10s ja lähetetään dataa
         for load in loads:
-            time = chrono.read()
-            if time - load.getLast10SecTime() >= 10:
+            curtime = chrono.read()
+            if curtime - load.getLast10SecTime() >= 10:
                 #keskiarvon lasku
                 sum = 0
                 for val in load.getLast10Sec():
@@ -274,8 +280,8 @@ def main():
 
         #tarkistetaan onko kulunut 10s ja lähetetään dataa
         for phase in phases:
-            time = chrono.read()
-            if time - phase.getLast10SecTime() >= 10:
+            curtime = chrono.read()
+            if curtime - phase.getLast10SecTime() >= 10:
                 #keskiarvon lasku
                 sum = 0
                 for val in phase.getLast10Sec():
@@ -439,11 +445,11 @@ print("Sync complete!")
 
 #mitä tuntia mitataan nyt
 measTime = [2018,12,25,13]
-time = rtc.now()
-year = time[0]
-month = time[1]
-day = time[2]
-hour = time[3]
+timeNow = rtc.now()
+year = timeNow[0]
+month = timeNow[1]
+day = timeNow[2]
+hour = timeNow[3]
 curTime = [year,month,day,hour]
 setMeasTime(measTime,curTime)
 
