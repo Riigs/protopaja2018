@@ -190,14 +190,13 @@ def main():
     printInfo(loads)
     printInfo(phases)
     print("............\n")
-
     maxPower = maxHour
-
     running = True
 
     chrono.start()
-    latestTime = 0
+    latestMeasTime = 0
     latestPowerTime = 0
+    latestManControlTime = 0
     while running:
 
         #tarkistetaan onko tunti vaihtunut, jos on, nollataan tuntikulutukset
@@ -222,6 +221,25 @@ def main():
             maxPower = (maxHour-getTotalEnergy(phases))/(remainingTime/3600)
             latestPowerTime = chrono.read()
 
+        #tarkistetaan ohjaukset pilvestä tietyin väliajoin
+        if chrono.read()-latestManControlTime>5:
+            url = "https://salty-mountain-85076.herokuapp.com/api/loads/"
+            try:
+                data = urequests.get(url).json()
+                for unit in data:
+                    for load in loads:
+                        if load.getID()==unit['id']:
+                            manualVal = int(unit['contValue'])
+                            if manualVal==1:
+                                load.relayManualOpen()
+                            elif manualVal==0:
+                                load.relayManualClose()
+                                break;
+            except:
+                print("Error getting manualCont values.")
+                pass
+            latestManControlTime = chrono.read()
+
         #tarkistetaan onko kulunut 10s ja lähetetään dataa
         for load in loads:
             time = chrono.read()
@@ -242,24 +260,12 @@ def main():
                 #print(input)
                 #urequests vaatii että data on enkoodattu utf-8:ssa(funktion oletusasetus)
                 url = "http://ec2-34-245-7-230.eu-west-1.compute.amazonaws.com:8086/write?db=newtest&u="+secrets[0]+"&p="+secrets[1]
-                url2 = "https://salty-mountain-85076.herokuapp.com/api/loads/"+load.getID()+"/contValue"
+
                 #print(url)
                 #joskus datan lataus epäonnistuu ja ohjelma kaatuu ilman try-exceptiä
                 try:
                     urequests.post(url,data=input.encode())
                 except:
-                    pass
-
-                #haetaan samalla manualControl arvot netistä (pitäisikö tehdä useammin kuin 10 sek välein?)
-                try:
-                    data = urequests.get(url2)
-                    manualVal = int(data.json())
-                    if manualVal==1:
-                        load.relayManualOpen()
-                    elif manualVal==0:
-                        load.relayManualClose()
-                except:
-                    print("Error getting manualCont values.")
                     pass
 
                 #tyhjennetään lista ja asetetaan uusi resettausaika
@@ -299,9 +305,9 @@ def main():
                 phase.resetLast10Sec()
 
         #käynnistetään mittauslooppi jos aikaa edellisestä mittauksesta on kulunut ainakin 0.5 sekuntia
-        if chrono.read() - latestTime >= 0.5:
+        if chrono.read() - latestMeasTime >= 0.5:
             pycom.rgbled(0x330000) # red
-            latestTime = chrono.read()
+            latestMeasTime = chrono.read()
             for load in loads:
                 if load.isActive():
                     #mitataan virta ja lasketaan kulutus ja lisätään se kuormien omiin arvoihin
@@ -385,7 +391,6 @@ def main():
             print("Tehoja:",loads[1].getLast10Sec())
             print("CurEne:",getTotalEnergy(phases))
             print("Max power =",maxPower)
-            #ohjauksen tarkistaminen pilvestä tarvitaan viel
 
     printInfo(loads)
     printInfo(phases)
