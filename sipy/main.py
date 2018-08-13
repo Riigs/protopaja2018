@@ -260,7 +260,16 @@ def main():
     global maxPower
 
     #tarkistetaan ohjaukset pilvestä tietyin väliajoin
-    _thread.start_new_thread(cloudThread, (loads,phases))
+    while True:
+        try:
+            _thread.start_new_thread(cloudThread, (loads,phases))
+            break
+        except:
+            print("Try again")
+            pass
+        pycom.rgbled(0x000000)
+        time.sleep(1)
+        pycom.rgbled(0x007f00)
 
     chrono.start()
     latestMeasTime = 0
@@ -377,7 +386,7 @@ def main():
 
                     loadPower = load.getLastCur() * voltage
                     #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
-                    if totalPower + loadPower < maxPower * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastTime() < phase.getMaxCur():
+                    if totalPower + loadPower < maxPower * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastCur() < phase.getMaxCur():
                         load.relayAutoClose()
 
             #tehdään mittaukset ja rajoitukset päävaiheille
