@@ -188,8 +188,10 @@ def getTotalEnergy(phases):
         total += phase.getCurHourEne()
     return total
 
-def getControlValues(threadLoads):
+def cloudThread(threadLoads,threadPhases):
+    global maxHour
     while True:
+        #controllimuuttujien hakeminen
         try:
             url = 'http://salty-mountain-85076.herokuapp.com/api/loads'
             threadData = urequests.get(url).json()
@@ -205,6 +207,20 @@ def getControlValues(threadLoads):
         except:
             print("Error getting manualCont values.")
             pass
+
+        #maksimi tuntitehon hakeminen
+        try:
+            url = 'http://salty-mountain-85076.herokuapp.com/api/phases'
+            threadData = urequests.get(url).json()
+            for threadUnit in threadData:
+                for threadPhase in threadPhases:
+                        if threadPhase.getID()==threadUnit['id']:
+                            threadVal = int(threadUnit['phaseMax'])
+                            maxHour = threadVal
+                            break;
+        except:
+            print("Error getting max hourpower values.")
+            pass
         time.sleep(5)
 
 #päälooppi
@@ -212,11 +228,12 @@ def main():
     printInfo(loads)
     printInfo(phases)
     print("............\n")
-    maxPower = maxHour
     running = True
+    global maxHour
+    global maxPower
 
     #tarkistetaan ohjaukset pilvestä tietyin väliajoin
-    _thread.start_new_thread(getControlValues, ([loads]))
+    _thread.start_new_thread(cloudThread, (loads,phases))
 
     chrono.start()
     latestMeasTime = 0
@@ -338,13 +355,6 @@ def main():
                     if totalPower + loadPower < maxPower * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastTime() < phase.getMaxCur():
                         load.relayAutoClose()
 
-                #kuormien palautus päälle, aikaisemmassa tunnin puolikkaassa
-                #elif load.isActive() == False and minutes<30:
-                    #curEne = getTotalEnergy(phases)
-                    #maxEne = maxHour/2
-                    #if curEne < maxEne * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastTime() < phase.getMaxCur():
-                        #load.relayAutoClose()
-
             #tehdään mittaukset ja rajoitukset päävaiheille
             totalEne = 0
             totalPower = 0
@@ -367,9 +377,6 @@ def main():
                 print("")
 
             #jos järjestelmän kokonaisteho ylittää maksimitehon, sammutetaan kuormia, järjestetään vaiheet niiden kulutuksen mukaan, laskevasti
-            #tämä pätee myöhemmässä tunnin puolikkaassa
-            curEne = getTotalEnergy(phases)
-            maxEne = maxHour/2
             phases.sort(key=lambda phase: phase.getLastPower(),reverse=True)
             if totalPower >= maxPower:
                 for phase in phases:
@@ -377,12 +384,6 @@ def main():
                         if load.isActive():
                             load.relayAutoOpen()
                             break
-            #tätä kutsutaan kun ollaan tunnin aikaisemmassa puolikkaassa
-            #elif curEne >= maxEne and minutes<30:
-                #for phase in phases:
-                    #for load in phase.returnLoads():
-                        #if load.isActive():
-                            #load.relayAutoOpen()
 
             #releiden ohjaus muuttujien mukaan
             for load in loads:
@@ -397,6 +398,7 @@ def main():
             print("Tehoja:",loads[1].getLast10Sec())
             print("CurEne:",getTotalEnergy(phases))
             print("Max power =",maxPower)
+            print("Max tuntiteho =",maxHour)
 
     printInfo(loads)
     printInfo(phases)
@@ -413,12 +415,6 @@ voltage = 235
 #eri sulakkeiden maksimivirrat
 phaseMaxCur = 36
 loadMaxCur = 10
-
-#maksimi tuntiteho ja tämänhetkisen tunnin kulutus ja raja-arvo
-#yksiköt watteina ja wattitunteina
-maxHour = 2000
-maxPower = maxHour
-hourThreshold = 0.9
 
 #tiedostojen nimet
 loadFile = "loads.txt"
@@ -465,6 +461,12 @@ getCloudEnes(phases,rtc,secrets)
 monthMax = 0
 for phase in phases:
     monthMax += getCloudMaxHourPower(secrets,phase)
+
+#maksimi tuntiteho ja tämänhetkisen tunnin kulutus ja raja-arvo
+#yksiköt watteina ja wattitunteina
+maxHour = 2000
+maxPower = maxHour
+hourThreshold = 0.95
 
 #käynnistää main loopin vain jos tiedosto itse käynnistetään, eikä sitä
 #importata toiseen tiedostoon
