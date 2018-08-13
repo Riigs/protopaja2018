@@ -5,14 +5,41 @@ from machine import Timer
 from machine import RTC
 from machine import Pin
 from network import WLAN
+from network import Bluetooth
 import machine
 import usocket
 import time
 import ujson
 import _thread
 import os
-import sys
 import lib.urequests as urequests
+
+def conn_cb (bt_o):
+    events = bt_o.events()   # this method returns the flags and clears the internal registry
+    if events & Bluetooth.CLIENT_CONNECTED:
+        print("Client connected")
+    elif events & Bluetooth.CLIENT_DISCONNECTED:
+        print("Client disconnected")
+
+#bluetooth-testausta
+def bluetest():
+    bluetooth = Bluetooth()
+    bluetooth.set_advertisement(name='SiPy', service_uuid=b'1234567890123456')
+    bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
+    bluetooth.advertise(True)
+
+    while True:
+        adv = bluetooth.get_adv()
+        if adv:
+            print(adv)
+            print(bluetooth.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL))
+            print("Mac:",adv.mac)
+    #sys.exit()
+
+#print("Let's wait...")
+#time.sleep(2)
+#print("Done waiting!")
+#bluetest()
 
 #nettiin yhdistys
 wlan = WLAN(mode=WLAN.STA)
@@ -221,7 +248,7 @@ def cloudThread(threadLoads,threadPhases):
         except:
             print("Error getting max hourpower values.")
             pass
-        time.sleep(5)
+        time.sleep(1)
 
 #päälooppi
 def main():
@@ -342,8 +369,6 @@ def main():
                     load.updateLastTime(newTime)
                     load.addCurHourEne(energy,power)
 
-                #kuormien palautus päälle, jälkimmäisessä tunnin puolikkaassa
-                #and minutes>=30
                 elif load.isActive() == False:
                     #lasketaan kokonaisteho järjestelmässä
                     totalPower = 0
@@ -361,6 +386,7 @@ def main():
             for phase in phases:
                 current = phase.getCurrent()
                 power = current * voltage
+                phase.setLastPower(power)
                 phase.addLast10Sec(power)
                 totalPower += power
 
