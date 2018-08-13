@@ -1,7 +1,7 @@
 from lib.mittaus import *
 import os
 
-#luokka kuormille
+#luokka kuormilla
 class load:
     def __init__(self,name,ID,commandbits,relayPin,maximumCurrent,phase,priority):
         #kuorman nimi ja ID-numero
@@ -178,6 +178,9 @@ class mainPhase:
 
     def getLastPower(self):
         return self.__lastPower
+
+    def setLastPower(self,lastPower):
+        self.__lastPower = lastPower
 
     def getLast10SecTime(self):
         return self.__last10SecTime
