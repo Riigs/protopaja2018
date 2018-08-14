@@ -20,7 +20,7 @@ except ImportError:
     print("Sipy disconnected")
     pass
 
-vref = 4.611
+vref = 5.062
 
 #lukee yhden arvon
 def getReading(commandbits,ave):
