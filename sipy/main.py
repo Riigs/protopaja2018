@@ -3,43 +3,13 @@ from lib.classes import *
 from lib.ohjaus import *
 from machine import Timer
 from machine import RTC
-from machine import Pin
 from network import WLAN
-from network import Bluetooth
-import machine
-import usocket
-import time
-import ujson
+from time import sleep
+from micropython import mem_info
+from gc import mem_free
+from gc import collect
 import _thread
-import os
 import lib.urequests as urequests
-
-def conn_cb (bt_o):
-    events = bt_o.events()   # this method returns the flags and clears the internal registry
-    if events & Bluetooth.CLIENT_CONNECTED:
-        print("Client connected")
-    elif events & Bluetooth.CLIENT_DISCONNECTED:
-        print("Client disconnected")
-
-#bluetooth-testausta
-def bluetest():
-    bluetooth = Bluetooth()
-    bluetooth.set_advertisement(name='SiPy', service_uuid=b'1234567890123456')
-    bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
-    bluetooth.advertise(True)
-
-    while True:
-        adv = bluetooth.get_adv()
-        if adv:
-            print(adv)
-            print(bluetooth.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL))
-            print("Mac:",adv.mac)
-    #sys.exit()
-
-#print("Let's wait...")
-#time.sleep(2)
-#print("Done waiting!")
-#bluetest()
 
 #nettiin yhdistys
 wlan = WLAN(mode=WLAN.STA)
@@ -48,30 +18,22 @@ for net in nets:
     if net.ssid == 'aalto open':
         print('Network found!')
         wlan.connect(net.ssid, timeout=5000)
-        while not wlan.isconnected():
-            machine.idle() # save power while waiting
-        print('WLAN connection succeeded!')
-        break
+        sleep(5)
+        if wlan.isconnected():
+            print('WLAN connection succeeded!')
+            break
 
 pycom.heartbeat(False)
 
 #funktioiden määrittely
 def openLoads(loads):
-    #path = "files/" + loadFile
-    #loadData = open(path,'r')
-    #try:
     resp = urequests.get('https://salty-mountain-85076.herokuapp.com/api/loads')
     loadData = resp.json()
     for nuload in loadData:
-        #data = line.split(',')
-        #if len(data) == 7:
-        #newLoad = load(data[0],int(data[1]),data[2],data[3],int(data[4]),int(data[5]),int(data[6]))
         newLoad = load(nuload['name'],nuload['id'],nuload['commandBits'],nuload['relayPin'],int(nuload['maxCurrent']),int(nuload['phase']),
             int(nuload['priority']))
         loads.append(newLoad)
-    #loadData.close()
-    #except:
-    return
+    return resp
 
 def sortLoads(loads,phases):
     for load in loads:
@@ -87,21 +49,13 @@ def sortLoads(loads,phases):
     for phase in phases:
         phase.loadPrioritize()
 
-def openPhases(phases,phasesFile):
-    #path = os.path.join("files", phasesFile)
-    #path = "files/" + phasesFile
-    #phasesData = open(path,'r')
-    #try:
+def openPhases(phases):
     resp = urequests.get('https://salty-mountain-85076.herokuapp.com/api/phases')
     phasesData = resp.json()
     for phase in phasesData:
-        #data = line.split(',')
-        #if len(data) == 4:
         newPhase = mainPhase(phase['name'],phase['id'],phase['commandBits'],int(phase['maxCurrent']))
         phases.append(newPhase)
-    #phasesData.close()
-    #except:
-    return
+    return resp
 
 def openPass(passFile):
     path = "files/" + passFile
@@ -144,6 +98,7 @@ def getCloudEnes(list,rtc,secrets):
             resp = urequests.get(url+query)
             #print(resp.status_code)
             jsonOut = resp.json()
+            resp.close()
 
             #print(jsonOut)
             #print("Aika:",jsonOut["results"][0]["series"][0]["values"][0][0])
@@ -159,25 +114,6 @@ def getCloudEnes(list,rtc,secrets):
             print("Query failed.")
             pass
 
-#palauttaa kuukauden viimeisen päivän
-def getFinalDay(month,year):
-    if month==1 or month==3 or month==5 or month==7 or month==8 or month==10 or month==12:
-        return 31
-    elif month==4 or month==6 or month==9 or month==11:
-        return 30
-
-    elif month==2:
-        if year%4==0:
-            if year%100==0:
-                if year%400==0:
-                    return 29
-                else:
-                    return 28
-            else:
-                return 29
-        else:
-            return 28
-
 #tulostaa 12 kuukauden ajalta suurimman kulutuksen tunnin tiedot ja palauttaa kulutuksen
 def getCloudMaxHourPower(secrets,thing):
     ene = 0
@@ -189,6 +125,7 @@ def getCloudMaxHourPower(secrets,thing):
         resp = urequests.get(url+query)
         #print(resp.status_code)
         jsonOut = resp.json()
+        resp.close()
         #print(jsonOut)
 
         ene = jsonOut["results"][0]["series"][0]["values"][0][1]
@@ -217,38 +154,44 @@ def getTotalEnergy(phases):
 
 def cloudThread(threadLoads,threadPhases):
     global maxHour
+    global startto
     while True:
         #controllimuuttujien hakeminen
-        try:
-            url = 'http://salty-mountain-85076.herokuapp.com/api/loads'
-            threadData = urequests.get(url).json()
-            for threadUnit in threadData:
-                for threadLoad in threadLoads:
-                        if threadLoad.getID()==threadUnit['id']:
-                            threadVal = int(threadUnit['contValue'])
-                            if threadVal==1:
-                                threadLoad.relayManualOpen()
-                            elif threadVal==0:
-                                threadLoad.relayManualClose()
+        if startto:
+            try:
+                url = 'http://salty-mountain-85076.herokuapp.com/api/loads'
+                resp = urequests.get(url)
+                threadData = resp.json()
+                resp.close()
+                for threadUnit in threadData:
+                    for threadLoad in threadLoads:
+                            if threadLoad.getID()==threadUnit['id']:
+                                threadVal = int(threadUnit['contValue'])
+                                if threadVal==1:
+                                    threadLoad.relayManualOpen()
+                                elif threadVal==0:
+                                    threadLoad.relayManualClose()
                                 break;
-        except:
-            print("Error getting manualCont values.")
-            pass
+            except:
+                print("Error getting manualCont values.")
+                pass
 
-        #maksimi tuntitehon hakeminen
-        try:
-            url = 'http://salty-mountain-85076.herokuapp.com/api/phases'
-            threadData = urequests.get(url).json()
-            for threadUnit in threadData:
-                for threadPhase in threadPhases:
-                        if threadPhase.getID()==threadUnit['id']:
-                            threadVal = int(threadUnit['phaseMax'])
-                            maxHour = threadVal
-                            break;
-        except:
-            print("Error getting max hourpower values.")
-            pass
-        time.sleep(1)
+            #maksimi tuntitehon hakeminen
+            try:
+                url = 'http://salty-mountain-85076.herokuapp.com/api/phases'
+                resp = urequests.get(url)
+                threadData = resp.json()
+                resp.close()
+                for threadUnit in threadData:
+                    for threadPhase in threadPhases:
+                            if threadPhase.getID()==threadUnit['id']:
+                                threadVal = int(threadUnit['phaseMax'])
+                                maxHour = threadVal
+                                break;
+            except:
+                print("Error getting max hourpower values.")
+                pass
+            sleep(1)
 
 #päälooppi
 def main():
@@ -258,19 +201,8 @@ def main():
     running = True
     global maxHour
     global maxPower
-
-    #tarkistetaan ohjaukset pilvestä tietyin väliajoin
-    while True:
-        try:
-            _thread.start_new_thread(cloudThread, (loads,phases))
-            break
-        except:
-            print("Try again")
-            pass
-        pycom.rgbled(0x000000)
-        time.sleep(1)
-        pycom.rgbled(0x007f00)
-
+    global startto
+    startto = True
     chrono.start()
     latestMeasTime = 0
     latestPowerTime = 0
@@ -323,7 +255,8 @@ def main():
                 #print(url)
                 #joskus datan lataus epäonnistuu ja ohjelma kaatuu ilman try-exceptiä
                 try:
-                    urequests.post(url,data=input.encode())
+                    resp = urequests.post(url,data=input.encode())
+                    resp.close()
                 except:
                     pass
 
@@ -355,6 +288,7 @@ def main():
                 #tarvitaan try except mahdollisen kaatumisen estämiseksi
                 try:
                     resp = urequests.post(url,data=input.encode())
+                    resp.close()
                     #print(resp.status_code)
                 except:
                     pass
@@ -452,19 +386,32 @@ phaseMaxCur = 36
 loadMaxCur = 10
 
 #tiedostojen nimet
-loadFile = "loads.txt"
-phaseFile = "phases.txt"
+#loadFile = "loads.txt"
+#phaseFile = "phases.txt"
 passFile = "pass.txt"
-
 #avataan eri kuormat tiedostosta
 loads = []
 #kuormien nimet pitää olla ilman ääkkösiä,ei välilyöntejä,
-openLoads(loads)
+resp1 = openLoads(loads)
 
 #avataan tiedot eri vaiheista tiedostosta
 phases = []
-openPhases(phases,phaseFile)
+resp2 = openPhases(phases)
 sortLoads(loads,phases)
+
+startto = False
+#tarkistetaan ohjaukset pilvestä tietyin väliajoin
+while True:
+    try:
+        _thread.start_new_thread(cloudThread, (loads,phases))
+        break
+    except:
+        print("Try again")
+        print(mem_info())
+        print(mem_free())
+        pycom.rgbled(0x000000)
+        sleep(1)
+        pycom.rgbled(0x007f00)
 
 #kellon päivittäminen uudelleenkäynnistyksessä internetin kautta
 rtc = RTC()
@@ -483,6 +430,9 @@ day = timeNow[2]
 hour = timeNow[3]
 curTime = [year,month,day,hour]
 setMeasTime(measTime,curTime)
+del timeNow,year,month,day,hour,curTime
+resp1.close()
+resp2.close()
 
 #avataan salasanat ja käyttäjät tiedostosta
 #tiedosto muotoa:
@@ -492,10 +442,6 @@ secrets = openPass(passFile)
 #ladataan nykyisen tunnin kulutukset pilvestä
 getCloudEnes(loads,rtc,secrets)
 getCloudEnes(phases,rtc,secrets)
-
-monthMax = 0
-for phase in phases:
-    monthMax += getCloudMaxHourPower(secrets,phase)
 
 #maksimi tuntiteho ja tämänhetkisen tunnin kulutus ja raja-arvo
 #yksiköt watteina ja wattitunteina
