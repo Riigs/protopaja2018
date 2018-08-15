@@ -157,7 +157,8 @@ class mainPhase:
         #tämän tunnin kulutus, maksimi hetkellinen virta ja raja-arvo
         self.__curHourEne = 0
         self.__maximumCurrent = maximumCurrent
-        self.__threshold = 0.9
+        self.__threshold = 0.95
+        self.__returnThreshold = 0.9
 
         #command bits - start, mode, chn (3), dont care (3)
         combits = []
@@ -215,6 +216,11 @@ class mainPhase:
     #antaa maksimivirran
     def getMaxCur(self):
         maxCur = self.__threshold*self.__maximumCurrent
+        return maxCur
+
+    #antaa maksimipalautusvirran
+    def getMaxReturnCur(self):
+        maxCur = self.__returnThreshold*self.__maximumCurrent
         return maxCur
 
     #antaa vaiheen nimen
