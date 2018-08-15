@@ -289,7 +289,6 @@ def main():
                 try:
                     resp = urequests.post(url,data=input.encode())
                     resp.close()
-                    #print(resp.status_code)
                 except:
                     pass
 
@@ -320,7 +319,7 @@ def main():
 
                     loadPower = load.getLastCur() * voltage
                     #tarkistetaan onko nykyinen vaiheteho ja kuorman teho yhdessä tarpeeksi pieni, suljetaan rele jos on
-                    if totalPower + loadPower < maxPower * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastCur() < phase.getMaxCur():
+                    if totalPower + loadPower < maxPower * hourThreshold and phases[load.getPhase()-1].getLastCur() + load.getLastCur() < phase.getMaxReturnCur():
                         load.relayAutoClose()
 
             #tehdään mittaukset ja rajoitukset päävaiheille
