@@ -14,14 +14,18 @@ import lib.urequests as urequests
 #nettiin yhdistys
 wlan = WLAN(mode=WLAN.STA)
 nets = wlan.scan()
-for net in nets:
-    if net.ssid == 'aalto open':
-        print('Network found!')
-        wlan.connect(net.ssid, timeout=5000)
-        sleep(5)
-        if wlan.isconnected():
-            print('WLAN connection succeeded!')
-            break
+while not wlan.isconnected():
+    for net in nets:
+        if net.ssid == 'aalto open':
+            print('Network found!')
+            wlan.connect(net.ssid, timeout=5000)
+            sleep(5)
+            if wlan.isconnected():
+                print('WLAN connection succeeded!')
+                break
+    if not wlan.isconnected():
+        print("Trying again for connection.")
+        sleep(1)
 
 pycom.heartbeat(False)
 
