@@ -257,6 +257,7 @@ def main():
                 try:
                     resp = urequests.post(url,data=input.encode())
                     resp.close()
+                    #pass
                 except:
                     pass
 
@@ -289,6 +290,7 @@ def main():
                 try:
                     resp = urequests.post(url,data=input.encode())
                     resp.close()
+                    #pass
                 except:
                     pass
 
@@ -313,6 +315,7 @@ def main():
 
                 elif load.isActive() == False:
                     #lasketaan kokonaisteho järjestelmässä
+                    load.addCurHourEne(0,0)
                     totalPower = 0
                     for phase in phases:
                         totalPower += phase.getLastPower()
