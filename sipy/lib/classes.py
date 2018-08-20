@@ -42,6 +42,9 @@ class load:
         #milloin 10s -lista on viimeksi resetattu
         self.__last10SecTime = 0
 
+    def setPriority(self,prio):
+        self.__priority = prio
+
     def getLast10SecTime(self):
         return self.__last10SecTime
 
