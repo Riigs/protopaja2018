@@ -148,6 +148,7 @@ def main():
             totalEne = 0
             totalPower = 0
             for phase in phases:
+                phase.loadPrioritize()
                 current = phase.getCurrent()
                 power = current * voltage
                 phase.setLastPower(power)
