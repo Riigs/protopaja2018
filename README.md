@@ -7,6 +7,8 @@ Tämä dokumentaatio paremmin jäsenneltynä ja lisää tietoa projektista löyt
 
 Sipy-kansio, jonka sisältö ladataan SiPylle. Files-kansio, jossa on paikallisia tekstitiedostoja(tällä hetkellä tietokannan tunnukset ja yhdistettävän wifin tiedot), sekä vanhoja tekstitiedostoja, joita ei enää käytetä. Lib-kansiossa ovat koodimoduulit classes.py, mittaus.py, ohjaus.py ja urequests.py. Main.py on pääkooditiedosto.
 
+Kansiosta etaohjaus löytyy palvelimen, sekä käyttöliittymän koodit.  
+
 # Mittaus.py
 
 Tässä koodimoduulissa on funktio ja sen apufunktio, jonka avulla AD-muuntimesta luetaan arvoja.
