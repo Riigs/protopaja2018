@@ -2,7 +2,7 @@
 Protopaja 2018, Aalto-yliopisto 
 
 
-Koodin rakenne
+#Koodin rakenne
 
 Sipy-kansio, jonka sisältö ladataan SiPylle. Files-kansio, jossa on paikallisia tekstitiedostoja(tällä hetkellä tietokannan tunnukset ja yhdistettävän wifin tiedot), sekä vanhoja tekstitiedostoja, joita ei enää käytetä. Lib-kansiossa ovat koodimoduulit classes.py, mittaus.py, ohjaus.py ja urequests.py. Main.py on pääkooditiedosto.
 
