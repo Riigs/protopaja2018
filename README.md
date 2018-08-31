@@ -2,11 +2,11 @@
 Protopaja 2018, Aalto-yliopisto 
 
 
-#Koodin rakenne
+# Koodin rakenne
 
 Sipy-kansio, jonka sisältö ladataan SiPylle. Files-kansio, jossa on paikallisia tekstitiedostoja(tällä hetkellä tietokannan tunnukset ja yhdistettävän wifin tiedot), sekä vanhoja tekstitiedostoja, joita ei enää käytetä. Lib-kansiossa ovat koodimoduulit classes.py, mittaus.py, ohjaus.py ja urequests.py. Main.py on pääkooditiedosto.
 
-Mittaus.py
+# Mittaus.py
 
 Tässä koodimoduulissa on funktio ja sen apufunktio, jonka avulla AD-muuntimesta luetaan arvoja.
 
@@ -38,7 +38,7 @@ Seuraavaksi AD-muunnin lähettää arvoja, jotka luetaan. AD-muunnin lähettää
 
 Lopulta lopetamme kommunikoinnin AD-muuntimen kanssa nostamalla ChipPinnin ylös. Sitten laskemme uuden pseudo-keskiarvon käyttämällä annettua arvoa ja mitattua arvoa. Mitattu arvo lasketaan adcvalue muuttujan avulla joka on väliltä 0-4095(2¹²-1, eli AD-muuntimen tarkkuus). Tämä jaetaan maksimiarvolla 4095 ja kerrotaan referenssijännitteellä. Sitten uusi jännite palautetaan.
 
-Ohjaus.py
+# Ohjaus.py
 
 Tässä tiedostossa on funktioita, joita käytetään releiden ohjaamiseen.
 
@@ -56,7 +56,7 @@ Näiden avulla päätellään pitääkö rele sulkea, tieto joka palautetaan. Jo
 
 Aluksi lopullinen ohjausarvo selvitetään selControl-funktion avulla, jonka jälkeen ohjaus tehdään controlRelay-funktion avulla.
 
-Classes.py
+# Classes.py
 
 Tässä tiedostossa määritellään luokat, joita pääohjelmassa käytetään. Luokat ovat load ja mainPhase. Tiedoston alussa tuodaan mittaus.py.
 
@@ -100,7 +100,7 @@ Jälleen luokassa on funktiot muuttujien arvojen vaihtamiselle ja niiden palautt
 
 (Rivit 256-257)Funktio resetHour nollaa tunnin kulutuksen tunnin vaihtuessa.
 
-uRequests.py
+# uRequests.py
 
 Moduuli, jonka avulla mikrokontrollerimme keskustelee tietokantojen avulla. Moduuli on osa MicroPython-projektia GitHub:issa, josta sen pystyy myös lataamaan. Moduuli ei kuitenkaan oletuksena ollut SiPy:ssä.
 
@@ -110,13 +110,13 @@ Jouduimme muuttamaan ladattua koodia hieman, koska SiPy:mme MicroPython on ilmei
 
 ai = usocket.getaddrinfo(host, port, 0, usocket.SOCK_STREAM) -> ai = usocket.getaddrinfo(host, port)
 
-Main.py
+# Main.py
 
 Tässä tiedostossa on ohjelman varsinainen koodi ja lisäksi paljon funktiota. Periaatteessa nämä funktiot olisi voinut siisteyden vuoksi siirtää vielä omaan tiedostoonsa.
 
 Tiedoston alussa tuodaan kaikki tarvittavat moduulit, sekä itse kokoamamme, että valmiit. Heti näiden jälkeen määritellään main-loop, mutta käsitellään se vasta myöhemmin. Käydään aluksi läpi miten ohjelma alkaa.
 
-Alkuvalmistelut
+## Alkuvalmistelut
 
 Rivillä 426 alkaa ohjelman suoritus. Aluksi luodaan uusi bluetooth-olio, jolla alamme “mainostamaan” SiPyä bluetoothin kautta nimellä Kuormanohjausyksikkö. Tällöin muut laitteet pystyvät näkemään SiPyn ja yrittää muodostaa yhteyden siihen. Kyseessä ei ole kuitenkaan laitteiden pair:aus; puhelimeen tarvitaan erillinen applikaatio, joka yhdistää SiPyyn.
 
@@ -166,7 +166,7 @@ Muistia voi olla liian vähän, mutta meidän projektissamme ainakin ongelmana o
 
 (Rivit 573-576)Lopuksi käynnistämme pääloopin. Tarkistamme, että tiedosto joka pyörittää koodia nyt on varmasti main-niminen, sen varalta että päälooppia ei käynnistetä jos tämä tiedosto tuotaisiin osaksi jotakin toista koodia, jolla on oma päälooppinsa.
 
-Apufunktiot
+## Apufunktiot
 
 (Rivit 199-213)Funktio openWifiInfo nimensä mukaisesti avaa tiedot paikallisesti tallennetusta wifi-yhteydestä. SiPy käyttää tätä yhteyttä oletuksena, jos se ei vastaanota uutta yhteyttä. SSID ja salasana luetaan files-kansion wifiInfo-tekstitiedostosta, jossa molemmat on tallennettu omalle rivilleen. Lopuksi arvot palautetaan.
 
@@ -212,7 +212,7 @@ Seuraavaksi haetaan maksimituntiteho. Määritellään jälleen url ja muutetaan
 
 (Rivit 386-389)Funktiota sendInfo kutsuttaisiin, kun SiPy lähettäisi dataa Bluetoothin kautta. Emme kuitenkaan lopulta tehneet tätä toiminnallisuutta.
 
-Main()
+## Main()
 
 Käydään seuraavaksi läpi itse pääfunktio. Jälkikäteen ajateltuna useita kohtia pääfunktiosta olisi voinut toteuttaa omina funktioinaan, jotka olisivat tehneet pääfunktiosta helpommin luettavan ja lyhyemmän.
 
