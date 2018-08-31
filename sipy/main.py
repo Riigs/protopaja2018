@@ -25,7 +25,7 @@ def main():
     chrono.start()
     latestMeasTime = 0
     latestPowerTime = 0
-    latestManControlTime = 0
+
     while running:
 
         #tarkistetaan onko tunti vaihtunut, jos on, nollataan tuntikulutukset
