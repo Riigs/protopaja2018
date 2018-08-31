@@ -1,6 +1,7 @@
 # protopaja2018
 Protopaja 2018, Aalto-yliopisto 
 
+Tämä dokumentaatio paremmin jäsenneltynä ja lisää tietoa projektista löytyy osoitteesta: http://protopaja.aalto.fi/protopaja-2018/ensto-2018
 
 # Koodin rakenne
 
