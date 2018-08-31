@@ -1,0 +1,25 @@
+{
+  "loads": [
+    {
+      "id": 1,
+      "contValue": 0,
+      "name": "kuorma1",
+      "date": "2017-12-10T18:39:34.091Z",
+      "important": false
+    },
+    {
+      "id": 2,
+      "contValue": 1,
+      "name": "kuorma2",
+      "date": "2017-12-10T18:39:34.091Z",
+      "important": false
+    },
+    {
+      "id": 3,
+      "contValue": 0,
+      "name": "kuorma3",
+      "date": "2017-12-10T19:20:14.298Z",
+      "important": true
+    }
+  ]
+}
